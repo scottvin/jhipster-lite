@@ -2,6 +2,7 @@ package tech.jhipster.lite.module.domain.properties;
 
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record JHipsterProjectBaseName(String name) {
   private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9]+$");
@@ -13,20 +14,14 @@ public record JHipsterProjectBaseName(String name) {
     this.name = buildName(name);
   }
 
-  private String buildName(String name) {
+  private static String buildName(String name) {
     if (StringUtils.isBlank(name)) {
       return DEFAULT_NAME;
     }
 
-    assertValidName(name);
+    Assert.field("baseName", name).matchesPatternOrThrow(NAME_PATTERN, InvalidProjectBaseNameException::new);
 
     return name;
-  }
-
-  private void assertValidName(String name) {
-    if (!NAME_PATTERN.matcher(name).matches()) {
-      throw new InvalidProjectBaseNameException();
-    }
   }
 
   public String get() {

@@ -1,8 +1,9 @@
 package tech.jhipster.lite.module.domain.properties;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record JHipsterProjectFolder(String folder) {
   public JHipsterProjectFolder {
@@ -13,6 +14,10 @@ public record JHipsterProjectFolder(String folder) {
     Assert.notNull("file", file);
 
     return Paths.get(folder(), file);
+  }
+
+  public boolean fileExists(String fileName) {
+    return Files.exists(filePath(fileName));
   }
 
   public String get() {

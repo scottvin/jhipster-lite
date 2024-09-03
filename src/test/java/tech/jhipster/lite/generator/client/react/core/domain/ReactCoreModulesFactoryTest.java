@@ -15,51 +15,84 @@ class ReactCoreModulesFactoryTest {
 
   @Test
   void shouldBuildModuleWithStyle() {
-    JHipsterModule module = factory.buildModuleWithStyle(
+    JHipsterModule module = factory.buildModule(
       JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).projectBaseName("jhipster").build()
     );
 
-    assertThatModuleWithFiles(module, packageJsonFile())
-      .createFile("package.json")
-      .containing(nodeDependency("@testing-library/jest-dom"))
+    assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
+      .hasFile("package.json")
+      .containing(nodeDependency("@testing-library/dom"))
       .containing(nodeDependency("@testing-library/react"))
-      .containing(nodeDependency("@testing-library/user-event"))
-      .containing(nodeDependency("@types/jest"))
       .containing(nodeDependency("@types/node"))
       .containing(nodeDependency("@types/react"))
       .containing(nodeDependency("@types/react-dom"))
-      .containing(nodeDependency("@types/ws"))
+      .containing(nodeDependency("@tsconfig/vite-react"))
+      .containing(nodeDependency("@typescript-eslint/eslint-plugin"))
       .containing(nodeDependency("@vitejs/plugin-react"))
-      .containing(nodeDependency("jest"))
-      .containing(nodeDependency("jest-sonar-reporter"))
-      .containing(nodeDependency("jest-css-modules"))
-      .containing(nodeDependency("jest-environment-jsdom"))
+      .containing(nodeDependency("@vitest/coverage-istanbul"))
+      .containing(nodeDependency("typescript-eslint"))
+      .containing(nodeDependency("globals"))
+      .containing(nodeDependency("eslint"))
+      .containing(nodeDependency("eslint-plugin-react"))
+      .containing(nodeDependency("jsdom"))
       .containing(nodeDependency("typescript"))
-      .containing(nodeDependency("ts-jest"))
       .containing(nodeDependency("ts-node"))
       .containing(nodeDependency("vite"))
+      .containing(nodeDependency("vite-tsconfig-paths"))
+      .containing(nodeDependency("vitest"))
+      .containing(nodeDependency("vitest-sonar-reporter"))
       .containing(nodeDependency("react"))
       .containing(nodeDependency("react-dom"))
       .containing(nodeScript("dev", "vite"))
       .containing(nodeScript("build", "tsc && vite build --emptyOutDir"))
+      .containing(nodeScript("tsc:watch", "tsc --noEmit --watch"))
       .containing(nodeScript("preview", "vite preview"))
       .containing(nodeScript("start", "vite"))
-      .containing(nodeScript("test", "jest"))
-      .containing(nodeScript("test:watch", "jest --watch"))
+      .containing(nodeScript("lint", "eslint ."))
+      .containing(nodeScript("test", "npm run test:watch"))
+      .containing(nodeScript("test:coverage", "vitest run --coverage"))
+      .containing(nodeScript("test:watch", "vitest --"))
+      .and()
+      .hasFile(".lintstagedrc.cjs")
       .containing(
-        "  \"jestSonar\": {\n    \"reportPath\": \"target/test-results/jest\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  },"
+        """
+        module.exports = {
+          '{src/**/,}*.{ts,tsx}': ['eslint --fix', 'prettier --write'],
+          '*.{md,json,yml,html,css,scss,java,xml,feature}': ['prettier --write'],
+        };
+        """
       )
       .and()
-      .createFiles("tsconfig.json", "vite.config.ts", "jest.config.ts")
-      .createFiles("src/main/webapp/index.html")
-      .createPrefixedFiles("src/main/webapp/app", "index.css", "index.tsx", "vite-env.d.ts")
-      .createFiles("src/test/javascript/spec/common/primary/app/App.spec.tsx")
-      .createFiles("src/main/webapp/config/setupTests.ts")
-      .createFile("src/main/webapp/app/common/primary/app/App.tsx")
+      .hasFiles("tsconfig.json", "vite.config.ts", "vitest.config.ts", ".npmrc", "eslint.config.js")
+      .hasFiles("src/main/webapp/index.html")
+      .hasPrefixedFiles("src/main/webapp/app", "index.css", "index.tsx", "vite-env.d.ts")
+      .hasFiles("src/test/webapp/unit/common/primary/app/App.spec.tsx")
+      .hasFile("src/main/webapp/app/common/primary/app/App.tsx")
       .containing("import './App.css';")
       .and()
-      .createFiles("src/main/webapp/app/common/primary/app/App.css")
-      .createPrefixedFiles("src/main/webapp/content/images", "ReactLogo.png", "JHipster-Lite-neon-blue.png");
+      .hasFiles("src/main/webapp/app/common/primary/app/App.css")
+      .hasPrefixedFiles("src/main/webapp/assets", "ReactLogo.png", "JHipster-Lite-neon-blue.png");
+  }
+
+  @Test
+  void shouldViteConfigBeUpdatedWhenServerPortPropertyNotDefault() {
+    JHipsterModule module = factory.buildModule(
+      JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).projectBaseName("jhipster").put("serverPort", 8081).build()
+    );
+
+    assertThatModuleWithFiles(module, packageJsonFile())
+      .hasFile("vite.config.ts")
+      .containing("localhost:8081")
+      .notContaining("localhost:8080");
+  }
+
+  @Test
+  void shouldViteConfigBeDefaultWhenServerPortPropertyMissing() {
+    JHipsterModule module = factory.buildModule(
+      JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).projectBaseName("jhipster").build()
+    );
+
+    assertThatModuleWithFiles(module, packageJsonFile()).hasFile("vite.config.ts").containing("localhost:8080");
   }
 
   private String nodeScript(String key, String value) {

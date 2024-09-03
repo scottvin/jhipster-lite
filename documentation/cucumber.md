@@ -15,7 +15,7 @@ Feature: Simple WebService test
 You'll then have to define the glue code:
 
 ```java
-import static tech.jhipster.lite.cucumber.CucumberAssertions.*;
+import static tech.jhipster.lite.cucumber.rest.CucumberRestAssertions.*;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -40,7 +40,7 @@ public class SimpleSteps {
 
 ```
 
-Use a `TestRestTemplate` to make your rest calls so you'll have the `context` management: the stuff allowing easier assertions in the `Then` steps.
+Use a `TestRestTemplate` to make your rest calls, so you'll have the `context` management: the stuff allowing easier assertions in the `Then` steps.
 
 The `assertThatLastResponse()` is a fluent API to assert your WebServices results.
 
@@ -74,6 +74,7 @@ public void shouldGetResponseContent(Map<String, Object> response) {
 public void shouldGetResponseContent(List<Map<String, Object>> responses) {
   assertThatLastResponse().hasElement("$.users").containingExactly(responses);
 }
+
 ```
 
 ## Reading responses content
@@ -81,20 +82,20 @@ public void shouldGetResponseContent(List<Map<String, Object>> responses) {
 Sometimes you may want to access the last response content without asserting it, you can do:
 
 ```java
-CucumberTestContext.getElement("$.path");
-CucumberTestContext.getElement("uri-path", "$.path");
-CucumberTestContext.countEntries("$.path");
+CucumberRestTestContext.getElement("$.path");
+CucumberRestTestContext.getElement("uri-path", "$.path");
+CucumberRestTestContext.countEntries("$.path");
 ```
 
 ## Async services
 
-Sometimes you have to validate behavior of async operations. You can do:
+Sometimes you have to validate the behavior of async operations. You can do:
 
 ```java
 assertThatLastAsyncResponse().hasOkStatus();
 ```
 
-To have a default waiting time of 5 second or you can get a custom max with:
+To have a default waiting time of 5 seconds or you can get a custom max with:
 
 ```java
 assertThatLastAsyncResponse(Duration.ofSeconds(30)).hasOkStatus();
@@ -104,7 +105,7 @@ Behind the scene, your last service will be recalled until the assertions are OK
 
 ## Mocking beans
 
-You may need to mock beans for your component tests but you won't be able to do it in a "classic" way (using `@MockBean`) since the application context will be already loaded. A way to achieve that is to overload beans to have mocks:
+You may need to mock beans for your component tests, but you won't be able to do it in a "classic" way (using `@MockBean`) since the application context will be already loaded. A way to achieve that is to overload beans to have mocks:
 
 ```java
 @RunWith(Cucumber.class)

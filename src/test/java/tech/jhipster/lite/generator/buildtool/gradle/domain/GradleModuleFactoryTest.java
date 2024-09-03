@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.buildtool.gradle.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModule;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -16,22 +17,61 @@ class GradleModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("myApp")
       .build();
 
-    JHipsterModule module = factory.buildModule(properties);
+    JHipsterModule module = factory.buildGradleModule(properties);
 
     assertThatModule(module)
-      .createFile("build.gradle.kts")
-      .containing("group = \"com.jhipster.test\"")
+      .hasFile(".gitignore")
+      .containing(
+        """
+        # Gradle
+        /.gradle/
+        /build/
+        ./buildSrc/.gradle/
+        ./buildSrc/build/\
+        """
+      )
       .and()
-      .createFile("settings.gradle.kts")
+      .hasFile("build.gradle.kts")
+      .containing("group = \"tech.jhipster.jhlitest\"")
+      .containing("testImplementation(libs.junit.engine)")
+      .containing("testImplementation(libs.junit.params)")
+      .containing("testImplementation(libs.assertj)")
+      .containing("testImplementation(libs.mockito)")
+      .and()
+      .hasFile("settings.gradle.kts")
       .containing("my-app")
       .and()
-      .createExecutableFiles("gradlew", "gradlew.bat")
-      .createPrefixedFiles("gradle/wrapper", "gradle-wrapper.jar", "gradle-wrapper.properties");
+      .hasFile("gradle/libs.versions.toml")
+      .containing("junit-jupiter = \"")
+      .containing("assertj = \"")
+      .containing("mockito = \"")
+      .containing("[libraries.junit-engine]")
+      .containing("[libraries.junit-params]")
+      .containing("[libraries.assertj]")
+      .containing("[libraries.mockito]");
+  }
+
+  @Test
+  void shouldBuildGradleWrapperModule() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).build();
+
+    JHipsterModule module = factory.buildGradleWrapperModule(properties);
+
+    assertThatModuleWithFiles(module)
+      .hasFile(".gitignore")
+      .containing(
+        """
+        # Gradle Wrapper
+        !gradle/wrapper/gradle-wrapper.jar\
+        """
+      )
+      .and()
+      .hasExecutableFiles("gradlew", "gradlew.bat")
+      .hasPrefixedFiles("gradle/wrapper", "gradle-wrapper.jar", "gradle-wrapper.properties");
   }
 }

@@ -11,18 +11,18 @@ import tech.jhipster.lite.UnitTest;
 class RestProjectHistoryTest {
 
   @Test
-  void shouldSerializetoJson() {
+  void shouldSerializeToJson() {
     assertThat(JsonHelper.writeAsString(RestProjectHistory.from(projectHistory()))).isEqualTo(json());
   }
 
   private String json() {
     return """
-        {"modules":\
-        [\
-        {"slug":"test-module"}\
-        ],\
-        "properties":{"key":"value"}\
-        }\
-        """;
+    {"modules":\
+    [\
+    {"slug":"test-module"}\
+    ],\
+    "properties":{"key":"value"}\
+    }\
+    """;
   }
 }

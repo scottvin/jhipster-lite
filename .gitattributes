@@ -15,10 +15,12 @@
 *.cql           text
 *.df            text
 *.ejs           text
+*.feature       text
 *.html          text
 *.java          text
 *.js            text
 *.json          text
+*.kts           text
 *.less          text
 *.properties    text
 *.sass          text
@@ -26,6 +28,7 @@
 *.sh            text eol=lf
 *.sql           text
 *.txt           text
+*.toml          text
 *.ts            text
 *.xml           text
 *.yaml          text

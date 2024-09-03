@@ -1,0 +1,17 @@
+$jhlite-landscape-preset-configuration-color-border: $jhlite-global-line-color;
+$jhlite-landscape-preset-configuration-border-radius: $jhlite-global-box-radius;
+
+.jhlite-landscape-preset-configuration {
+  &--content {
+    border: 1px dotted $jhlite-landscape-preset-configuration-color-border;
+    border-radius: 0 $jhlite-landscape-preset-configuration-border-radius $jhlite-landscape-preset-configuration-border-radius;
+    padding: 10px;
+  }
+
+  &--field {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}

@@ -1,0 +1,19 @@
+$jhlite-input-text-color-background: $jhlite-global-color-fill-light;
+$jhlite-input-text-color-text: $jhlite-global-color-text-dark;
+$jhlite-input-text-disabled-color-background: $jhlite-global-color-fill-disabled-light;
+
+.jhlite-input-text {
+  @include jhlite-q-field;
+
+  &:disabled {
+    border-color: $jhlite-global-color-fill-disabled-dark;
+    background-color: $jhlite-input-text-disabled-color-background;
+  }
+
+  /* stylelint-disable-next-line no-descending-specificity, no-duplicate-selectors */
+  & {
+    background-color: $jhlite-input-text-color-background;
+    width: 100%;
+    color: $jhlite-input-text-color-text;
+  }
+}

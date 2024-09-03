@@ -3,6 +3,5 @@
   "version": "0.0.1",
   "engines": {
     "node": ">=14.18.1"
-  },
-  "cacheDirectories": ["node_modules"]
+  }
 }

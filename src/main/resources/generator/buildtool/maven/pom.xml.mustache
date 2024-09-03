@@ -13,69 +13,13 @@
   <description>{{projectName}}</description>
   <packaging>jar</packaging>
 
-  <!-- jhipster-needle-maven-parent -->
-
-  <repositories>
-    <!-- jhipster-needle-maven-repository -->
-  </repositories>
-
-  <pluginRepositories>
-    <!-- jhipster-needle-maven-plugin-repository -->
-  </pluginRepositories>
-
   <properties>
-    <java.version>17</java.version>
+    <java.version>{{javaVersion}}</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <maven.version>3.6.0</maven.version>
-
-    <junit-jupiter.version>5.8.2</junit-jupiter.version>
-    <assertj.version>3.22.0</assertj.version>
-    <mockito.version>4.2.0</mockito.version>
-    <!-- jhipster-needle-maven-property -->
+    <maven.version>3.6.3</maven.version>
   </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <!-- jhipster-needle-maven-add-dependency-management -->
-    </dependencies>
-  </dependencyManagement>
-
-  <dependencies>
-    <!-- jhipster-needle-maven-add-dependency -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- jhipster-needle-maven-add-dependency-test -->
-  </dependencies>
 
   <build>
     <resources>
@@ -84,22 +28,16 @@
         <filtering>true</filtering>
         <includes>
           <include>config/*.properties</include>
+          <include>config/*.yml</include>
         </includes>
       </resource>
       <resource>
         <directory>${basedir}/src/main/resources</directory>
         <excludes>
           <exclude>config/*.properties</exclude>
+          <exclude>config/*.yml</exclude>
         </excludes>
       </resource>
     </resources>
-    <plugins>
-      <!-- jhipster-needle-maven-add-plugin -->
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <!-- jhipster-needle-maven-add-plugin-management -->
-      </plugins>
-    </pluginManagement>
   </build>
 </project>

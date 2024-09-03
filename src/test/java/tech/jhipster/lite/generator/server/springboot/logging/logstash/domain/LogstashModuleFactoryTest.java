@@ -16,46 +16,53 @@ class LogstashModuleFactoryTest {
 
   @Test
   void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile(), testLockbackFile())
-      .createFile("pom.xml")
+    assertThatModuleWithFiles(module, pomFile(), testLogbackFile())
+      .hasFile("pom.xml")
       .containing(
         """
-                <dependency>
-                  <groupId>net.logstash.logback</groupId>
-                  <artifactId>logstash-logback-encoder</artifactId>
-                  <version>${logstash-logback-encoder.version}</version>
-                </dependency>
-            """
+            <dependency>
+              <groupId>net.logstash.logback</groupId>
+              <artifactId>logstash-logback-encoder</artifactId>
+              <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+        """
       )
       .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/secondary/logstash",
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/wire/logstash/infrastructure/secondary",
         "LogstashTcpConfiguration.java",
         "LogstashTcpLifeCycle.java",
         "LogstashTcpProperties.java"
       )
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/secondary/logstash",
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/wire/logstash/infrastructure/secondary",
         "LogstashTcpConfigurationIT.java",
         "LogstashTcpConfigurationTest.java",
         "LogstashTcpLifeCycleTest.java",
         "LogstashTcpPropertiesTest.java"
       )
-      .createFile("src/main/resources/config/application.properties")
-      .containing("application.logging.logstash.tcp.enabled=false")
-      .containing("application.logging.logstash.tcp.host=localhost")
-      .containing("application.logging.logstash.tcp.port=5000")
-      .containing("application.logging.logstash.tcp.ring-buffer-size=8192")
-      .containing("application.logging.logstash.tcp.shutdown_grace_period=PT1M")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        application:
+          logging:
+            logstash:
+              tcp:
+                enabled: false
+                host: localhost
+                port: 5000
+                ring-buffer-size: 8192
+                shutdown_grace_period: PT1M
+        """
+      )
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("<logger name=\"net.logstash.logback\" level=\"ERROR\" />")
       .containing("<logger name=\"org.jboss.logging\" level=\"WARN\" />");
   }

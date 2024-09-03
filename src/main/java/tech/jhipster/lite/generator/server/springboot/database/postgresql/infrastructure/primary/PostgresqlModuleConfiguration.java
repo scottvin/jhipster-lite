@@ -1,11 +1,15 @@
 package tech.jhipster.lite.generator.server.springboot.database.postgresql.infrastructure.primary;
 
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.JPA_PERSISTENCE;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.POSTGRESQL;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.SPRING_BOOT;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tech.jhipster.lite.generator.server.springboot.database.postgresql.application.PostgresqlApplicationService;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleApiDoc;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleResource;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 
 @Configuration
 class PostgresqlModuleConfiguration {
@@ -14,12 +18,18 @@ class PostgresqlModuleConfiguration {
 
   @Bean
   JHipsterModuleResource postgresqlModule(PostgresqlApplicationService postgresql) {
-    return JHipsterModuleResource
-      .builder()
-      .legacyUrl(URL_POSTGRESQL_MODULE)
-      .slug("postgresql")
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addProjectBaseName().build())
-      .apiDoc(new JHipsterModuleApiDoc("Spring Boot - Database", "Add Postgresql to project"))
+    return JHipsterModuleResource.builder()
+      .slug(POSTGRESQL)
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder()
+          .addBasePackage()
+          .addIndentation()
+          .addProjectBaseName()
+          .addSpringConfigurationFormat()
+          .build()
+      )
+      .apiDoc("Spring Boot - Database", "Add Postgresql to project")
+      .organization(JHipsterModuleOrganization.builder().feature(JPA_PERSISTENCE).addDependency(SPRING_BOOT).build())
       .tags("server", "spring", "spring-boot", "database")
       .factory(postgresql::build);
   }

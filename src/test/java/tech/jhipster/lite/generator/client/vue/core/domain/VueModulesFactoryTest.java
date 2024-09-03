@@ -16,74 +16,94 @@ class VueModulesFactoryTest {
 
   @Test
   void shouldCreateVueModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .projectBaseName("jhiTest")
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildVueModule(properties);
 
     //@formatter:off
-    assertThatModuleWithFiles(module, packageJsonFile())
-      .createFile("package.json")
+    assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
+      .hasFiles("documentation/vue.md")
+      .hasFile("package.json")
         .containing(nodeDependency("vue"))
-        .containing(nodeDependency("@rushstack/eslint-patch"))
-        .containing(nodeDependency("@types/jest"))
         .containing(nodeDependency("@typescript-eslint/parser"))
         .containing(nodeDependency("@vitejs/plugin-vue"))
-        .containing(nodeDependency("@vue/eslint-config-typescript"))
+        .containing(nodeDependency("typescript-eslint"))
+        .containing(nodeDependency("globals"))
         .containing(nodeDependency("@vue/test-utils"))
+        .containing(nodeDependency("@vue/tsconfig"))
+        .containing(nodeDependency("@vitest/coverage-istanbul"))
         .containing(nodeDependency("eslint"))
         .containing(nodeDependency("eslint-config-prettier"))
         .containing(nodeDependency("eslint-plugin-vue"))
-        .containing(nodeDependency("jest"))
-        .containing(nodeDependency("jest-sonar-reporter"))
-        .containing(nodeDependency("jest-transform-stub"))
-        .containing(nodeDependency("ts-jest"))
+        .containing(nodeDependency("jsdom"))
         .containing(nodeDependency("typescript"))
         .containing(nodeDependency("vite"))
-        .containing(nodeDependency("vue-jest"))
+        .containing(nodeDependency("vite-tsconfig-paths"))
+        .containing(nodeDependency("vitest"))
+        .containing(nodeDependency("vitest-sonar-reporter"))
         .containing(nodeDependency("vue-tsc"))
         .containing(nodeDependency("@types/sinon"))
         .containing(nodeDependency("sinon"))
         .containing(nodeDependency("axios"))
         .containing(nodeDependency("vue-router"))
-        .containing("\"build\": \"vue-tsc --noEmit && vite build --emptyOutDir\"")
-        .containing("\"dev\": \"vite\"")
-        .containing("\"jest\": \"jest src/test/javascript/spec --logHeapUsage --maxWorkers=2 --no-cache\"")
-        .containing("\"preview\": \"vite preview\"")
-        .containing("\"start\": \"vite\"")
-        .containing("\"test\": \"npm run jest --\"")
-        .containing("\"test:watch\": \"npm run jest -- --watch\"")
-        .containing("  \"jestSonar\": {\n    \"reportPath\": \"target/test-results/jest\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  },")
+        .containing(nodeScript("build", "vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir"))
+        .containing(nodeScript("tsc:watch", "vue-tsc -p tsconfig.build.json --noEmit --watch"))
+        .containing(nodeScript("dev", "vite"))
+        .containing(nodeScript("lint", "eslint ."))
+        .containing(nodeScript("preview", "vite preview"))
+        .containing(nodeScript("start", "vite"))
+        .containing(nodeScript("test", "npm run test:watch"))
+        .containing(nodeScript("test:coverage", "vitest run --coverage"))
+        .containing(nodeScript("test:watch", "vitest --"))
         .and()
-      .createPrefixedFiles("", ".eslintrc.js", "jest.config.js", "tsconfig.json", "vite.config.ts")
-      .createFiles("src/main/webapp/app/http/AxiosHttp.ts")
-      .createPrefixedFiles("src/test/javascript/spec/http", "AxiosHttp.spec.ts", "AxiosHttpStub.ts", "AxiosStub.ts")
-      .createFiles("src/main/webapp/index.html")
-      .createPrefixedFiles("src/main/webapp/app", "env.d.ts")
-      .createPrefixedFiles("src/main/webapp/app/common/primary/app", "App.component.ts", "index.ts", "App.html", "App.vue")
-      .createPrefixedFiles("src/main/webapp/content/images", "JHipster-Lite-neon-green.png", "VueLogo.png")
-      .createFiles("src/test/javascript/spec/common/primary/app/App.spec.ts")
-      .createPrefixedFiles("src/main/webapp/app/common/primary/homepage", "Homepage.component.ts", "Homepage.html","Homepage.vue", "index.ts")
-      .createFiles("src/test/javascript/spec/common/primary/homepage/Homepage.spec.ts")
-      .createFiles("src/main/webapp/app/router/router.ts", "src/test/javascript/spec/router/Router.spec.ts")
-      .createFile("src/main/webapp/app/main.ts")
+      .hasFile(".lintstagedrc.cjs")
+        .containing(
+          """
+            module.exports = {
+              '{src/**/,}*.{ts,vue}': ['eslint --fix', 'prettier --write'],
+              '*.{md,json,yml,html,css,scss,java,xml,feature}': ['prettier --write'],
+            };
+            """
+        )
+      .and()
+      .hasPrefixedFiles("", ".npmrc", "eslint.config.js", "tsconfig.json", "tsconfig.build.json", "vite.config.ts", "vitest.config.ts")
+      .hasFiles("src/main/webapp/app/http/AxiosHttp.ts")
+      .hasPrefixedFiles("src/test/webapp/unit/http", "AxiosHttp.spec.ts", "AxiosHttpStub.ts", "AxiosStub.ts")
+      .hasFiles("src/main/webapp/index.html")
+      .hasPrefixedFiles("src/main/webapp/app", "env.d.ts")
+      .hasPrefixedFiles("src/main/webapp/app/common/primary/app", "App.component.ts", "index.ts", "App.html", "AppVue.vue")
+      .hasPrefixedFiles("src/main/webapp/content/images", "JHipster-Lite-neon-green.png", "VueLogo.png")
+      .hasFiles("src/test/webapp/unit/common/primary/app/App.spec.ts")
+      .hasPrefixedFiles("src/main/webapp/app/common/primary/homepage", "Homepage.component.ts", "Homepage.html","HomepageVue.vue", "index.ts")
+      .hasFile("src/main/webapp/app/common/primary/homepage/Homepage.component.ts")
+        .containing("appName: 'jhiTest'")
+        .and()
+      .hasFiles("src/test/webapp/unit/common/primary/homepage/Homepage.spec.ts")
+      .hasFiles("src/main/webapp/app/router/router.ts", "src/test/webapp/unit/router/Router.spec.ts")
+      .hasFile("src/main/webapp/app/main.ts")
         .containing("import router from './router/router';")
         .containing("app.use(router);")
         .and()
-      .createPrefixedFiles("src/main/webapp/app/common/domain", "Logger.ts", "Message.ts")
-      .createFiles("src/main/webapp/app/common/secondary/ConsoleLogger.ts")
-      .createFiles("src/test/javascript/spec/common/domain/Logger.fixture.ts")
-      .createFiles("src/test/javascript/spec/common/secondary/ConsoleLogger.spec.ts");
+      .hasPrefixedFiles("src/main/webapp/app/common/domain", "Logger.ts", "Message.ts")
+      .hasFiles("src/main/webapp/app/common/secondary/ConsoleLogger.ts")
+      .hasFiles("src/test/webapp/unit/common/domain/Logger.fixture.ts")
+      .hasFiles("src/test/webapp/unit/common/secondary/ConsoleLogger.spec.ts")
+      .hasFiles("src/main/webapp/app/vue/VueProp.ts")
+      .hasFiles(
+        "src/test/webapp/unit/vue/vue-prop/ArrayComponentVue.vue",
+        "src/test/webapp/unit/vue/vue-prop/ObjectComponentVue.vue",
+        "src/test/webapp/unit/vue/vue-prop/VueProp.spec.ts"
+      );
     //@formatter:on
   }
 
   @Test
   void shouldCreatePiniaModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildPiniaModule(properties);
@@ -93,20 +113,20 @@ class VueModulesFactoryTest {
       packageJsonFile(),
       new ModuleFile("src/test/resources/projects/vue/main.ts.template", "src/main/webapp/app/main.ts")
     )
-      .createFile("package.json")
+      .hasFile("package.json")
       .containing(nodeDependency("pinia"))
-      .containing(nodeDependency("pinia-plugin-persist"))
+      .containing(nodeDependency("pinia-plugin-persistedstate"))
       .containing(nodeDependency("@pinia/testing"))
       .and()
-      .createFile("src/main/webapp/app/main.ts")
-      .containing("import {createPinia} from 'pinia';")
-      .containing("import piniaPersist from 'pinia-plugin-persist'")
+      .hasFile("src/main/webapp/app/main.ts")
+      .containing("import { createPinia } from 'pinia';")
+      .containing("import piniaPersist from 'pinia-plugin-persistedstate';")
       .containing(
         """
-                const pinia = createPinia();
-                pinia.use(piniaPersist);
-                app.use(pinia);
-                """
+        const pinia = createPinia();
+        pinia.use(piniaPersist);
+        app.use(pinia);
+        """
       );
   }
 }

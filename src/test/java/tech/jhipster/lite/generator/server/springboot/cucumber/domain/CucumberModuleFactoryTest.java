@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.cucumber.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -15,29 +16,27 @@ class CucumberModuleFactoryTest {
   private static final CucumberModuleFactory factory = new CucumberModuleFactory();
 
   @Test
-  void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+  void shouldBuildInitialModule() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("myapp")
       .build();
 
-    JHipsterModule module = factory.buildModule(properties);
+    JHipsterModule module = factory.buildInitializationModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test/cucumber",
+      .hasPrefixedFiles("src/test/java/tech/jhipster/jhlitest/cucumber", "CucumberConfiguration.java", "CucumberTest.java")
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/cucumber/rest",
         "AsyncElementAsserter.java",
         "AsyncHeaderAsserter.java",
         "AsyncResponseAsserter.java",
         "Awaiter.java",
-        "CucumberAssertions.java",
+        "CucumberRestAssertions.java",
         "CucumberRestTemplate.java",
-        "CucumberConfiguration.java",
         "CucumberJson.java",
-        "CucumberTest.java",
-        "CucumberTestContext.java",
-        "CucumberTestContextUnitTest.java",
+        "CucumberRestTestContext.java",
+        "CucumberRestTestContextUnitTest.java",
         "ElementAsserter.java",
         "ElementAssertions.java",
         "HeaderAsserter.java",
@@ -47,31 +46,26 @@ class CucumberModuleFactoryTest {
         "SyncHeaderAsserter.java",
         "SyncResponseAsserter.java"
       )
-      .createFiles("documentation/cucumber.md")
-      .createFiles("src/test/features/.gitkeep")
-      .createFile("pom.xml")
-      .containing("<artifactId>cucumber-junit</artifactId>")
+      .hasFiles("documentation/cucumber.md")
+      .hasFiles("src/test/features/.gitkeep")
+      .hasFile("pom.xml")
+      .containing("<artifactId>cucumber-junit-platform-engine</artifactId>")
       .containing("<artifactId>cucumber-java</artifactId>")
       .containing("<artifactId>cucumber-spring</artifactId>")
-      .containing("<artifactId>junit-vintage-engine</artifactId>")
-      .containing("<artifactId>testng</artifactId>")
-      .containing("<artifactId>awaitility</artifactId>")
+      .containing("<artifactId>junit-platform-suite</artifactId>")
       .containing("<version>${cucumber.version}</version>")
       .and()
-      .doNotCreateFiles("src/test/java/com/jhipster/test/cucumber/CucumberJpaReset.java");
+      .doNotHaveFiles("src/test/java/tech/jhipster/jhlitest/cucumber/CucumberJpaReset.java");
   }
 
   @Test
-  void shouldAddDataResetWithSelectedOption() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
-      .projectBaseName("myapp")
-      .put("jpaReset", true)
+  void shouldBuildJpaResetModule() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
-    JHipsterModule module = factory.buildModule(properties);
+    JHipsterModule module = factory.buildJpaResetModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile()).createFiles("src/test/java/com/jhipster/test/cucumber/CucumberJpaReset.java");
+    assertThatModuleWithFiles(module, pomFile()).hasFiles("src/test/java/tech/jhipster/jhlitest/cucumber/CucumberJpaReset.java");
   }
 }

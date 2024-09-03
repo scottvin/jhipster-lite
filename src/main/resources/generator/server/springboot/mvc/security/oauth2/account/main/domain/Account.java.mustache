@@ -2,17 +2,16 @@ package {{packageName}}.account.domain;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+import {{packageName}}.shared.authentication.domain.Role;
+import {{packageName}}.shared.authentication.domain.Roles;
+import {{packageName}}.shared.authentication.domain.Username;
+import {{packageName}}.shared.error.domain.Assert;
+import {{packageName}}.shared.useridentity.domain.Email;
+import {{packageName}}.shared.useridentity.domain.Firstname;
+import {{packageName}}.shared.useridentity.domain.Lastname;
+import {{packageName}}.shared.useridentity.domain.Name;
 
-import {{packageName}}.authentication.domain.Role;
-import {{packageName}}.authentication.domain.Roles;
-import {{packageName}}.authentication.domain.Username;
-import {{packageName}}.error.domain.Assert;
-import {{packageName}}.useridentity.domain.Email;
-import {{packageName}}.useridentity.domain.Firstname;
-import {{packageName}}.useridentity.domain.Lastname;
-import {{packageName}}.useridentity.domain.Name;
-
-public class Account {
+public final class Account {
 
   private final Username username;
   private final Name name;
@@ -51,8 +50,14 @@ public class Account {
     return roles;
   }
 
-  public static class UserBuilder implements AccountUsernameBuilder, AccountFirstnameBuilder, AccountLastnameBuilder,
-      AccountEmailBuilder, AccountRolesBuilder, AccountOptionalFieldBuilder {
+  private static final class UserBuilder
+    implements
+      AccountUsernameBuilder,
+      AccountFirstnameBuilder,
+      AccountLastnameBuilder,
+      AccountEmailBuilder,
+      AccountRolesBuilder,
+      AccountOptionalFieldBuilder {
 
     private Username username;
     private Firstname firstname;
@@ -60,8 +65,7 @@ public class Account {
     private Email email;
     private Roles roles;
 
-    private UserBuilder() {
-    }
+    private UserBuilder() {}
 
     @Override
     public AccountFirstnameBuilder username(Username username) {
@@ -142,9 +146,7 @@ public class Account {
     default AccountOptionalFieldBuilder roles(Collection<String> roles) {
       Assert.notNull("roles", roles);
 
-      return roles(new Roles(roles.stream()
-          .map(Role::from)
-          .collect(Collectors.toUnmodifiableSet())));
+      return roles(new Roles(roles.stream().map(Role::from).collect(Collectors.toUnmodifiableSet())));
     }
   }
 

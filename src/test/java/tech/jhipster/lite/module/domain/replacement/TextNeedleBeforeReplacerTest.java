@@ -32,14 +32,21 @@ class TextNeedleBeforeReplacerTest {
   void shouldInsertTextLineBeforeFirstLineNeedle() {
     TextNeedleBeforeReplacer replacer = new TextNeedleBeforeReplacer(always(), "<!-- needle !-->");
 
-    String updatedContent = replacer.replacement().apply("""
-            <!-- needle !-->
-            """, "<element />");
-
-    assertThat(updatedContent).isEqualTo("""
-        <element />
+    String updatedContent = replacer
+      .replacement()
+      .apply(
+        """
         <!-- needle !-->
-        """);
+        """,
+        "<element />"
+      );
+
+    assertThat(updatedContent).isEqualTo(
+      """
+      <element />
+      <!-- needle !-->
+      """
+    );
   }
 
   @Test
@@ -48,18 +55,23 @@ class TextNeedleBeforeReplacerTest {
 
     String updatedContent = replacer
       .replacement()
-      .apply("""
-            <root>
-            <!-- needle !-->
-            </root>
-            """, "<element />");
-
-    assertThat(updatedContent).isEqualTo("""
+      .apply(
+        """
         <root>
-        <element />
         <!-- needle !-->
         </root>
-        """);
+        """,
+        "<element />"
+      );
+
+    assertThat(updatedContent).isEqualTo(
+      """
+      <root>
+      <element />
+      <!-- needle !-->
+      </root>
+      """
+    );
   }
 
   @Test
@@ -68,20 +80,25 @@ class TextNeedleBeforeReplacerTest {
 
     String updatedContent = replacer
       .replacement()
-      .apply("""
-            <root>
-              <!-- needle !-->
-
-            </root>
-            """, "<element />");
-
-    assertThat(updatedContent).isEqualTo("""
+      .apply(
+        """
         <root>
-        <element />
           <!-- needle !-->
 
         </root>
-        """);
+        """,
+        "<element />"
+      );
+
+    assertThat(updatedContent).isEqualTo(
+      """
+      <root>
+      <element />
+        <!-- needle !-->
+
+      </root>
+      """
+    );
   }
 
   @Test
@@ -92,32 +109,31 @@ class TextNeedleBeforeReplacerTest {
       .replacement()
       .apply(
         """
-            <root>
-              <!-- needle !-->
+        <root>
+          <!-- needle !-->
 
 
-              <!-- needle !-->
-              <!-- needle !--> with trailling text
-            </root>
-            """,
+          <!-- needle !-->
+          <!-- needle !--> with trailing text
+        </root>
+        """,
         "<element />"
       );
 
-    assertThat(updatedContent)
-      .isEqualTo(
-        """
-        <root>
-        <element />
-          <!-- needle !-->
+    assertThat(updatedContent).isEqualTo(
+      """
+      <root>
+      <element />
+        <!-- needle !-->
 
 
-        <element />
-          <!-- needle !-->
-        <element />
-          <!-- needle !--> with trailling text
-        </root>
-        """
-      );
+      <element />
+        <!-- needle !-->
+      <element />
+        <!-- needle !--> with trailing text
+      </root>
+      """
+    );
   }
 
   @Test

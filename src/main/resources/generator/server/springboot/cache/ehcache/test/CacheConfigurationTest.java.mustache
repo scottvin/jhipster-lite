@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.secondary.cache;
+package {{packageName}}.wire.cache.infrastructure.secondary;
 
 import static org.mockito.Mockito.*;
 
@@ -18,13 +18,13 @@ class CacheConfigurationTest {
   private static final CacheConfiguration cacheConfiguration = new CacheConfiguration(new EhcacheProperties());
 
   @Mock
-  CacheManager cm;
+  private CacheManager cm;
 
   @Mock
-  Cache<Object, Object> cache;
+  private Cache<Object, Object> cache;
 
   @Mock
-  Configuration<Object, Object> customConfig;
+  private Configuration<Object, Object> customConfig;
 
   @Test
   void shouldCreateDefaultCache() {
@@ -39,15 +39,15 @@ class CacheConfigurationTest {
   }
 
   @Test
-  void shouldReplaceExistingCache() {
+  void shouldClearExistingCache() {
     // given an existing cache "test"
-    doReturn(cache).when(cm).getCache("shouldReplaceExistingCache");
+    doReturn(cache).when(cm).getCache("shouldClearExistingCache");
 
     // when attempting to create a new cache "test"
-    CacheConfiguration.createCache(cm, "shouldReplaceExistingCache", customConfig);
+    CacheConfiguration.createCache(cm, "shouldClearExistingCache", customConfig);
 
     // then destroy and create cache "test"
-    verify(cm).destroyCache("shouldReplaceExistingCache");
-    verify(cm).createCache("shouldReplaceExistingCache", customConfig);
+    verify(cache).clear();
+    verify(cm, never()).createCache("shouldClearExistingCache", customConfig);
   }
 }

@@ -2,10 +2,10 @@ package {{packageName}}.account.infrastructure.primary;
 
 import static org.assertj.core.api.Assertions.*;
 
-import {{packageName}}.JsonHelper;
-import {{packageName}}.UnitTest;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import {{packageName}}.JsonHelper;
+import {{packageName}}.UnitTest;
 
 @UnitTest
 class RestAccountTest {
@@ -17,12 +17,12 @@ class RestAccountTest {
 
   private String json() {
     return """
-        {\
-        "login":"user",\
-        "authorities":[\
-        "ROLE_USER"\
-        ]\
-        }\
-        """;
+    {\
+    "login":"user",\
+    "authorities":[\
+    "ROLE_USER"\
+    ]\
+    }\
+    """;
   }
 }

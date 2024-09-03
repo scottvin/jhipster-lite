@@ -14,7 +14,11 @@ public class CypressApplicationService {
     factory = new CypressModuleFactory();
   }
 
-  public JHipsterModule buildModule(JHipsterModuleProperties properties) {
-    return factory.buildModule(properties);
+  public JHipsterModule buildComponentTestsModule(JHipsterModuleProperties properties) {
+    return factory.buildComponentTestsModule(properties);
+  }
+
+  public JHipsterModule buildE2ETestsModule(JHipsterModuleProperties properties) {
+    return factory.buildE2ETestsModule(properties);
   }
 }

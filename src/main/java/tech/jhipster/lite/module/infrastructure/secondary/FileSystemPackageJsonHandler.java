@@ -1,31 +1,29 @@
 package tech.jhipster.lite.module.infrastructure.secondary;
 
-import static tech.jhipster.lite.module.domain.JHipsterModule.*;
+import static tech.jhipster.lite.module.domain.JHipsterModule.LINE_BREAK;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Collection;
-import java.util.List;
+import java.nio.file.*;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.common.domain.Enums;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
+import org.springframework.stereotype.Service;
 import tech.jhipster.lite.module.domain.Indentation;
-import tech.jhipster.lite.module.domain.packagejson.JHipsterModulePackageJson;
-import tech.jhipster.lite.module.domain.packagejson.PackageJsonDependencies;
-import tech.jhipster.lite.module.domain.packagejson.PackageJsonDependency;
-import tech.jhipster.lite.module.domain.packagejson.Scripts;
+import tech.jhipster.lite.module.domain.JHipsterModuleContext;
+import tech.jhipster.lite.module.domain.file.TemplateRenderer;
+import tech.jhipster.lite.module.domain.npm.NpmVersionSource;
+import tech.jhipster.lite.module.domain.npm.NpmVersions;
+import tech.jhipster.lite.module.domain.packagejson.*;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
-import tech.jhipster.lite.npm.domain.NpmVersionSource;
-import tech.jhipster.lite.npm.domain.NpmVersions;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.enumeration.domain.Enums;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
+@Service
 class FileSystemPackageJsonHandler {
 
   private static final String QUOTE = "\"";
@@ -33,17 +31,26 @@ class FileSystemPackageJsonHandler {
   private static final String LINE_SEPARATOR = LINE_END + LINE_BREAK;
 
   private final NpmVersions npmVersions;
+  private final TemplateRenderer templateRenderer;
 
-  public FileSystemPackageJsonHandler(NpmVersions npmVersions) {
+  public FileSystemPackageJsonHandler(NpmVersions npmVersions, TemplateRenderer templateRenderer) {
     Assert.notNull("npmVersions", npmVersions);
+    Assert.notNull("templateRenderer", templateRenderer);
 
     this.npmVersions = npmVersions;
+    this.templateRenderer = templateRenderer;
   }
 
-  public void handle(Indentation indentation, JHipsterProjectFolder projectFolder, JHipsterModulePackageJson packageJson) {
+  public void handle(
+    Indentation indentation,
+    JHipsterProjectFolder projectFolder,
+    JHipsterModulePackageJson packageJson,
+    JHipsterModuleContext context
+  ) {
     Assert.notNull("indentation", indentation);
     Assert.notNull("projectFolder", projectFolder);
     Assert.notNull("packageJson", packageJson);
+    Assert.notNull("context", context);
 
     if (packageJson.isEmpty()) {
       return;
@@ -52,11 +59,16 @@ class FileSystemPackageJsonHandler {
     Path file = getPackageJsonFile(projectFolder);
 
     String content = readContent(file);
+    content = replaceType(indentation, packageJson.nodeModuleFormat(), content);
     content = replaceScripts(indentation, packageJson.scripts(), content);
     content = replaceDevDependencies(indentation, packageJson.devDependencies(), content);
     content = replaceDependencies(indentation, packageJson.dependencies(), content);
+    content = removeDependencies(indentation, packageJson.dependenciesToRemove(), content);
+    content = removeDevDependencies(indentation, packageJson.devDependenciesToRemove(), content);
 
+    content = replacePlaceholders(content, context);
     content = cleanupLineBreaks(indentation, content);
+
     write(file, content);
   }
 
@@ -70,18 +82,16 @@ class FileSystemPackageJsonHandler {
     return file;
   }
 
+  private String replacePlaceholders(String content, JHipsterModuleContext context) {
+    return templateRenderer.render(content, context);
+  }
+
   private String cleanupLineBreaks(Indentation indentation, String content) {
     return content.replaceAll(",(\\s*|[\r\n]*)}", LINE_BREAK + indentation.spaces() + "}");
   }
 
   private String replaceScripts(Indentation indentation, Scripts scripts, String content) {
-    return JsonReplacer
-      .builder()
-      .blocName("scripts")
-      .jsonContent(content)
-      .indentation(indentation)
-      .entries(scriptEntries(scripts))
-      .replace();
+    return JsonAction.replace().blockName("scripts").jsonContent(content).indentation(indentation).entries(scriptEntries(scripts)).apply();
   }
 
   private List<JsonEntry> scriptEntries(Scripts scripts) {
@@ -89,80 +99,135 @@ class FileSystemPackageJsonHandler {
   }
 
   private String replaceDevDependencies(Indentation indentation, PackageJsonDependencies devDependencies, String content) {
-    return JsonReplacer
-      .builder()
-      .blocName("devDependencies")
+    return JsonAction.replace()
+      .blockName("devDependencies")
       .jsonContent(content)
       .indentation(indentation)
       .entries(dependenciesEntries(devDependencies))
-      .replace();
+      .apply();
+  }
+
+  private String removeDevDependencies(Indentation indentation, PackageNames dependenciesToRemove, String content) {
+    return JsonAction.remove()
+      .blockName("devDependencies")
+      .jsonContent(content)
+      .indentation(indentation)
+      .entries(dependenciesEntries(dependenciesToRemove))
+      .apply();
   }
 
   private String replaceDependencies(Indentation indentation, PackageJsonDependencies dependencies, String content) {
-    return JsonReplacer
-      .builder()
-      .blocName("dependencies")
+    return JsonAction.replace()
+      .blockName("dependencies")
       .jsonContent(content)
       .indentation(indentation)
       .entries(dependenciesEntries(dependencies))
-      .replace();
+      .apply();
   }
 
-  private List<JsonEntry> dependenciesEntries(PackageJsonDependencies devDependencies) {
-    return devDependencies.stream().map(dependency -> new JsonEntry(dependency.packageName().get(), getNpmVersion(dependency))).toList();
+  private String removeDependencies(Indentation indentation, PackageNames dependenciesToRemove, String content) {
+    return JsonAction.remove()
+      .blockName("dependencies")
+      .jsonContent(content)
+      .indentation(indentation)
+      .entries(dependenciesEntries(dependenciesToRemove))
+      .apply();
+  }
+
+  private String replaceType(Indentation indentation, Optional<NodeModuleFormat> nodeModuleFormat, String content) {
+    if (nodeModuleFormat.isEmpty()) {
+      return content;
+    }
+    return JsonAction.replace()
+      .blockName("type")
+      .jsonContent(content)
+      .indentation(indentation)
+      .blockValue(nodeModuleFormat.orElseThrow().name().toLowerCase())
+      .apply();
+  }
+
+  private List<JsonEntry> dependenciesEntries(PackageJsonDependencies dependencies) {
+    return dependencies.stream().map(dependency -> new JsonEntry(dependency.packageName().get(), getNpmVersion(dependency))).toList();
+  }
+
+  private Collection<JsonEntry> dependenciesEntries(PackageNames packageNames) {
+    return packageNames.stream().map(packageName -> new JsonEntry(packageName.get(), "")).toList();
   }
 
   private String getNpmVersion(PackageJsonDependency dependency) {
-    return npmVersions.get(dependency.packageName().get(), Enums.map(dependency.versionSource(), NpmVersionSource.class)).get();
+    PackageName packageName = dependency.versionPackageName().orElse(dependency.packageName());
+    return npmVersions.get(packageName.get(), Enums.map(dependency.versionSource(), NpmVersionSource.class)).get();
   }
 
-  @Generated(reason = "The error handling is an hard to test implementation detail")
+  @ExcludeFromGeneratedCodeCoverage(reason = "The error handling is an hard to test implementation detail")
   private String readContent(Path file) {
     try {
       return Files.readString(file);
     } catch (IOException e) {
-      throw new GeneratorException("Error reading " + file.toAbsolutePath().toString() + " content" + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error reading " + file.toAbsolutePath() + " content" + e.getMessage(), e);
     }
   }
 
-  @Generated(reason = "The error handling is an hard to test implementation detail")
+  @ExcludeFromGeneratedCodeCoverage(reason = "The error handling is an hard to test implementation detail")
   private void write(Path file, String content) {
     try {
-      Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+      Files.writeString(file, content, StandardOpenOption.TRUNCATE_EXISTING);
     } catch (IOException e) {
-      throw new GeneratorException("Error writing " + file.toAbsolutePath().toString() + ": " + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error writing " + file.toAbsolutePath() + ": " + e.getMessage(), e);
     }
   }
 
-  private static class JsonReplacer {
+  private static final class JsonAction {
 
-    private final String blocName;
+    private final String blockName;
     private final String jsonContent;
     private final Indentation indentation;
     private final Collection<JsonEntry> entries;
+    private final JsonActionType action;
+    private final String blockValue;
 
-    private JsonReplacer(JsonReplacerBuilder builder) {
-      blocName = builder.blocName;
+    private JsonAction(JsonActionBuilder builder) {
+      Assert.notNull("action", builder.action);
+      Assert.notNull("entries", builder.entries);
+
+      blockName = builder.blockName;
       jsonContent = builder.jsonContent;
       indentation = builder.indentation;
       entries = builder.entries;
+      action = builder.action;
+      blockValue = builder.blockValue;
     }
 
-    public static JsonReplacerBuilder builder() {
-      return new JsonReplacerBuilder();
+    public static JsonActionBuilder replace() {
+      return new JsonActionBuilder(JsonActionType.REPLACE);
+    }
+
+    public static JsonActionBuilder remove() {
+      return new JsonActionBuilder(JsonActionType.REMOVE);
     }
 
     public String handle() {
+      if (blockValue != null) {
+        return appendNewRootEntry(jsonContent);
+      }
+
       if (entries.isEmpty()) {
         return jsonContent;
       }
 
+      return switch (action) {
+        case REPLACE -> replaceEntries();
+        case REMOVE -> removeEntries();
+      };
+    }
+
+    private String replaceEntries() {
       String result = removeExistingEntries();
 
-      Matcher blocMatcher = buildBlocMatcher(result);
+      Matcher blockMatcher = buildBlockMatcher(result);
 
-      if (blocMatcher.find()) {
-        result = appendEntries(blocMatcher);
+      if (blockMatcher.find()) {
+        result = appendEntries(blockMatcher);
       } else {
         result = appendNewBlock(result);
       }
@@ -170,51 +235,72 @@ class FileSystemPackageJsonHandler {
       return result;
     }
 
-    private String appendEntries(Matcher blocMatcher) {
-      return blocMatcher.replaceFirst(match -> {
+    private String removeEntries() {
+      return removeExistingEntries();
+    }
+
+    private String appendEntries(Matcher blockMatcher) {
+      return blockMatcher.replaceFirst(match -> {
         StringBuilder result = new StringBuilder().append(match.group(1)).append(LINE_BREAK);
 
-        result.append(entriesBloc(indentation, entries));
+        result.append(entriesBlock(indentation, entries));
 
         result.append(LINE_END);
         return result.toString();
       });
     }
 
-    private String appendNewBlock(String result) {
-      String jsonBloc = new StringBuilder()
+    private String appendNewRootEntry(String result) {
+      String jsonBlock = new StringBuilder()
         .append(LINE_SEPARATOR)
         .append(indentation.spaces())
         .append(QUOTE)
-        .append(blocName)
+        .append(blockName)
+        .append(QUOTE)
+        .append(": ")
+        .append(QUOTE)
+        .append(blockValue)
+        .append(QUOTE)
+        .toString();
+
+      return result.replaceFirst("(\\s{1,10})}(\\s{1,10})$", jsonBlock + "$1}$2");
+    }
+
+    private String appendNewBlock(String result) {
+      String jsonBlock = new StringBuilder()
+        .append(LINE_SEPARATOR)
+        .append(indentation.spaces())
+        .append(QUOTE)
+        .append(blockName)
         .append(QUOTE)
         .append(": {")
         .append(LINE_BREAK)
-        .append(entriesBloc(indentation, entries))
+        .append(entriesBlock(indentation, entries))
         .append(LINE_BREAK)
         .append(indentation.spaces())
         .append("}")
         .toString();
 
-      return result.replaceFirst("(\\s{1,10})\\}(\\s{1,10})$", jsonBloc + "$1}$2");
+      return result.replaceFirst("(\\s{1,10})}(\\s{1,10})$", jsonBlock + "$1}$2");
     }
 
-    private Matcher buildBlocMatcher(String result) {
-      return Pattern.compile("(\"" + blocName + "\"\\s*:\\s*\\{)").matcher(result);
+    private Matcher buildBlockMatcher(String result) {
+      return Pattern.compile("(\"" + blockName + "\"\\s*:\\s*\\{)").matcher(result);
     }
 
+    @ExcludeFromGeneratedCodeCoverage(reason = "Combiner can't be tested and an implementation detail")
     private String removeExistingEntries() {
       return entries
         .stream()
-        .map(toEntryPattern(blocName, indentation))
+        .map(toEntryPattern(blockName, indentation))
         .reduce(jsonContent, (json, entryPattern) -> entryPattern.matcher(json).replaceAll("$1$2"), (first, second) -> first);
     }
 
-    private Function<JsonEntry, Pattern> toEntryPattern(String blocName, Indentation indentation) {
+    private Function<JsonEntry, Pattern> toEntryPattern(String blockName, Indentation indentation) {
       return entry -> {
         String pattern = new StringBuilder()
           .append("(\"")
-          .append(blocName)
+          .append(blockName)
           .append("\"\\s*:\\s*\\{)([^}]*)(\"")
           .append(entry.key())
           .append("\"\\s*:\\s*\"[^\\r\\n]+[\\r\\n]{1,2}(\\s{")
@@ -226,48 +312,65 @@ class FileSystemPackageJsonHandler {
       };
     }
 
-    private String entriesBloc(Indentation indentation, Collection<JsonEntry> entries) {
+    private String entriesBlock(Indentation indentation, Collection<JsonEntry> entries) {
       return entries.stream().map(entry -> entry.toJson(indentation)).collect(Collectors.joining(LINE_SEPARATOR));
     }
 
-    private static class JsonReplacerBuilder {
+    private static final class JsonActionBuilder {
 
-      private String blocName;
+      private String blockName;
       private String jsonContent;
       private Indentation indentation;
-      private Collection<JsonEntry> entries;
+      private Collection<JsonEntry> entries = List.of();
+      private final JsonActionType action;
+      private String blockValue;
 
-      private JsonReplacerBuilder blocName(String blocName) {
-        this.blocName = blocName;
+      private JsonActionBuilder(JsonActionType action) {
+        this.action = action;
+      }
+
+      private JsonActionBuilder blockName(String blockName) {
+        this.blockName = blockName;
 
         return this;
       }
 
-      private JsonReplacerBuilder jsonContent(String jsonContent) {
+      private JsonActionBuilder jsonContent(String jsonContent) {
         this.jsonContent = jsonContent;
 
         return this;
       }
 
-      private JsonReplacerBuilder indentation(Indentation indentation) {
+      private JsonActionBuilder indentation(Indentation indentation) {
         this.indentation = indentation;
 
         return this;
       }
 
-      private JsonReplacerBuilder entries(Collection<JsonEntry> entries) {
-        this.entries = entries;
+      private JsonActionBuilder entries(Collection<JsonEntry> entries) {
+        this.entries = JHipsterCollections.immutable(entries);
 
         return this;
       }
 
-      private String replace() {
-        return new JsonReplacer(this).handle();
+      private String apply() {
+        return new JsonAction(this).handle();
+      }
+
+      public JsonActionBuilder blockValue(String blockValue) {
+        this.blockValue = blockValue;
+
+        return this;
       }
     }
   }
 
-  private static record JsonEntry(String key, String value) {
+  private enum JsonActionType {
+    REPLACE,
+    REMOVE,
+  }
+
+  private record JsonEntry(String key, String value) {
     String toJson(Indentation indentation) {
       return new StringBuilder()
         .append(indentation.times(2))

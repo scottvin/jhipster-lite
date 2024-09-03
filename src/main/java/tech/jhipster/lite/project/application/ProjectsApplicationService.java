@@ -1,5 +1,6 @@
 package tech.jhipster.lite.project.application;
 
+import java.util.Collection;
 import org.springframework.stereotype.Service;
 import tech.jhipster.lite.project.domain.ProjectPath;
 import tech.jhipster.lite.project.domain.ProjectsRepository;
@@ -8,7 +9,8 @@ import tech.jhipster.lite.project.domain.download.ProjectsDownloader;
 import tech.jhipster.lite.project.domain.history.ProjectActionToAppend;
 import tech.jhipster.lite.project.domain.history.ProjectActionsAppender;
 import tech.jhipster.lite.project.domain.history.ProjectHistory;
-import tech.jhipster.lite.projectfolder.domain.ProjectFolder;
+import tech.jhipster.lite.project.domain.preset.Preset;
+import tech.jhipster.lite.shared.projectfolder.domain.ProjectFolder;
 
 @Service
 public class ProjectsApplicationService {
@@ -24,6 +26,10 @@ public class ProjectsApplicationService {
     actionsAppender = new ProjectActionsAppender(projects);
   }
 
+  public void format(ProjectPath path) {
+    projects.format(path);
+  }
+
   public Project get(ProjectPath path) {
     return downloader.download(path);
   }
@@ -34,5 +40,9 @@ public class ProjectsApplicationService {
 
   public ProjectHistory getHistory(ProjectPath path) {
     return projects.getHistory(path);
+  }
+
+  public Collection<Preset> getPresets() {
+    return projects.getPresets();
   }
 }

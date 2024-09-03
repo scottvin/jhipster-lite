@@ -1,6 +1,6 @@
 package tech.jhipster.lite.module.domain;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record Indentation(int spacesCount) {
   public static final Indentation DEFAULT = new Indentation(2);
@@ -20,7 +20,7 @@ public record Indentation(int spacesCount) {
   }
 
   private static boolean invalidSpacesCount(Integer spacesCount) {
-    return spacesCount == null || spacesCount.intValue() < 1;
+    return spacesCount == null || spacesCount < 1;
   }
 
   public String times(int times) {

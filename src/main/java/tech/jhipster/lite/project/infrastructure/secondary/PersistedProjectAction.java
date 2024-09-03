@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.Map;
 import tech.jhipster.lite.project.domain.history.ProjectAction;
 
-class PersistedProjectAction {
+final class PersistedProjectAction {
 
   private final String module;
   private final Instant date;
@@ -22,11 +22,11 @@ class PersistedProjectAction {
   }
 
   static PersistedProjectAction from(ProjectAction action) {
-    return new PersistedProjectAction(action.module().get(), action.date(), action.properties().get());
+    return new PersistedProjectAction(action.module().get(), action.date(), action.parameters().get());
   }
 
   ProjectAction toDomain() {
-    return ProjectAction.builder().module(getModule()).date(getDate()).properties(getProperties());
+    return ProjectAction.builder().module(getModule()).date(getDate()).parameters(getProperties());
   }
 
   public String getModule() {

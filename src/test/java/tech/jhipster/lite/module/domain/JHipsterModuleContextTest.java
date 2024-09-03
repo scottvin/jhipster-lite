@@ -3,47 +3,55 @@ package tech.jhipster.lite.module.domain;
 import static org.assertj.core.api.Assertions.*;
 import static tech.jhipster.lite.module.domain.JHipsterModulesFixture.*;
 
-import ch.qos.logback.classic.Level;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tech.jhipster.lite.Logs;
 import tech.jhipster.lite.LogsSpy;
+import tech.jhipster.lite.LogsSpyExtension;
 import tech.jhipster.lite.UnitTest;
+import tech.jhipster.lite.module.domain.javabuild.JavaBuildTool;
 
 @UnitTest
-@ExtendWith(LogsSpy.class)
+@ExtendWith(LogsSpyExtension.class)
 class JHipsterModuleContextTest {
 
-  private final LogsSpy logs;
-
-  public JHipsterModuleContextTest(LogsSpy logs) {
-    this.logs = logs;
-  }
-
-  @Test
-  void shouldGetDefaultIndentationFromInvalidIndentation() {
-    Indentation indentation = JHipsterModuleContext
-      .builder(emptyModuleBuilder())
-      .put("prettierDefaultIndent", "dummy")
-      .build()
-      .indentation();
-
-    logs.shouldHave(Level.INFO, "invalid indentation, using default");
-    assertThat(indentation).isEqualTo(Indentation.DEFAULT);
-  }
+  @Logs
+  private LogsSpy logs;
 
   @Test
   void shouldGetDefaultContext() {
     Map<String, Object> context = JHipsterModuleContext.builder(emptyModuleBuilder()).build().get();
 
     assertThat(context)
-      .hasSize(5)
-      .contains(
-        entry("baseName", "jhipster"),
-        entry("projectName", "JHipster Project"),
-        entry("packageName", "com.mycompany.myapp"),
-        entry("serverPort", 8080),
-        entry("prettierDefaultIndent", 2)
-      );
+      .hasSize(8)
+      .containsEntry("baseName", "jhipster")
+      .containsEntry("projectName", "JHipster Project")
+      .containsEntry("packageName", "com.mycompany.myapp")
+      .containsEntry("serverPort", 8080)
+      .containsEntry("indentSize", 2)
+      .containsEntry("javaVersion", "21")
+      .containsEntry("springConfigurationFormat", "yaml")
+      .containsEntry("projectBuildDirectory", "target");
+  }
+
+  @Test
+  void shouldEnrichContextWithJavaBuildTool() {
+    JHipsterModuleContext context = JHipsterModuleContext.builder(emptyModuleBuilder()).build();
+
+    Map<String, Object> newContext = context.withJavaBuildTool(JavaBuildTool.GRADLE).get();
+
+    assertThat(newContext)
+      .hasSize(8)
+      .containsKey("baseName")
+      .containsKey("projectName")
+      .containsKey("packageName")
+      .containsKey("serverPort")
+      .containsKey("indentSize")
+      .containsKey("javaVersion")
+      .containsKey("springConfigurationFormat")
+      .containsEntry("projectBuildDirectory", "build");
+
+    assertThat(context.get()).containsEntry("projectBuildDirectory", "target");
   }
 }

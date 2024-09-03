@@ -10,80 +10,52 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.git.domain.GitRepository;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
+import tech.jhipster.lite.module.domain.npm.NpmPackageVersion;
+import tech.jhipster.lite.module.domain.npm.NpmVersions;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
 
 @UnitTest
 @ExtendWith(MockitoExtension.class)
 class InitModuleFactoryTest {
 
   @Mock
-  private GitRepository git;
+  private NpmVersions npmVersions;
 
   @InjectMocks
   private InitModuleFactory factory;
 
   @Test
-  void shouldBuildFullModule() {
+  void shouldBuildModule() {
     String folder = TestFileUtils.tmpDirForTest();
     JHipsterModuleProperties properties = properties(folder);
+    when(npmVersions.nodeVersion()).thenReturn(new NpmPackageVersion("16.0.0"));
 
-    JHipsterModule module = factory.buildFullModule(properties);
+    JHipsterModule module = factory.buildModule(properties);
 
-    assertMinimalModule(folder, module)
-      .createFiles(".lintstagedrc.js", ".prettierignore", ".prettierrc")
-      .createExecutableFiles(".husky/pre-commit")
-      .createFile("package.json")
+    assertThatModule(module)
+      .hasFile("README.md")
+      .containing("# Test Project")
+      .and()
+      .hasFiles(".gitignore", ".gitattributes")
+      .hasFile(".editorconfig")
+      .containing("end_of_line = crlf")
+      .containing("indent_size = 4")
+      .and()
+      .hasFile("package.json")
       .containing("test-project")
-      .containing(nodeDependency("@prettier/plugin-xml"))
-      .containing(nodeDependency("husky"))
-      .containing(nodeDependency("lint-staged"))
-      .containing(nodeDependency("prettier"))
-      .containing(nodeDependency("prettier-plugin-java"))
-      .containing(nodeDependency("prettier-plugin-packagejson"))
-      .containing(nodeScript("prepare", "husky install"))
-      .containing(nodeScript("prettier:check", "prettier --check \\\"{,src/**/}*.{md,json,yml,html,js,ts,tsx,css,scss,vue,java,xml}\\\""))
-      .containing(nodeScript("prettier:format", "prettier --write \\\"{,src/**/}*.{md,json,yml,html,js,ts,tsx,css,scss,vue,java,xml}\\\""));
-  }
-
-  @Test
-  void shouldBuildMinimalModule() {
-    String folder = TestFileUtils.tmpDirForTest();
-    JHipsterModuleProperties properties = properties(folder);
-
-    JHipsterModule module = factory.buildMinimalModule(properties);
-
-    assertMinimalModule(folder, module);
+      .containing("Test Project")
+      .containing("\"node\": \">=16\"")
+      .notContaining("scripts");
   }
 
   private JHipsterModuleProperties properties(String folder) {
-    return JHipsterModulesFixture
-      .propertiesBuilder(folder)
+    return JHipsterModulesFixture.propertiesBuilder(folder)
       .projectBaseName("testProject")
       .put("projectName", "Test Project")
-      .put("prettierDefaultIndent", 2)
-      .put("editorConfigEndOfLine", "lf")
-      .put("prettierEndOfLine", "lf")
+      .put("endOfLine", "crlf")
+      .put("indentSize", 4)
       .build();
-  }
-
-  private ModuleAsserter assertMinimalModule(String folder, JHipsterModule module) {
-    ModuleAsserter asserter = assertThatModule(module)
-      .createFile("README.md")
-      .containing("# Test Project")
-      .and()
-      .createFiles(".gitignore", ".gitattributes")
-      .createFile(".editorconfig")
-      .containing("end_of_line = lf")
-      .containing("indent_size = 2")
-      .and()
-      .createFiles(".eslintignore");
-
-    verify(git).init(new JHipsterProjectFolder(folder));
-
-    return asserter;
   }
 }

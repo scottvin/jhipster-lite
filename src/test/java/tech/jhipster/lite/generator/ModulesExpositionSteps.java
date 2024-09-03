@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator;
 
-import static tech.jhipster.lite.cucumber.CucumberAssertions.*;
+import static tech.jhipster.lite.cucumber.rest.CucumberRestAssertions.assertThatLastResponse;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;

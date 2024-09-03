@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.secondary.liquibase;
+package {{packageName}}.wire.liquibase.infrastructure.secondary;
 
 import java.util.concurrent.Executor;
 import javax.sql.DataSource;
@@ -18,14 +18,17 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableConfigurationProperties({ LiquibaseProperties.class })
-public class LiquibaseConfiguration {
+class LiquibaseConfiguration {
 
-  private final Logger log = LoggerFactory.getLogger(LiquibaseConfiguration.class);
+  private static final Logger log = LoggerFactory.getLogger(LiquibaseConfiguration.class);
 
   private final Environment env;
 
   @Value("${application.liquibase.async:false}")
   private boolean async;
+
+  @Value("${spring.liquibase.change-log}")
+  private String changeLogClassPath;
 
   public LiquibaseConfiguration(Environment env) {
     this.env = env;
@@ -42,26 +45,24 @@ public class LiquibaseConfiguration {
     SpringLiquibase liquibase;
     if (async) {
       log.debug("Configuring Liquibase with async");
-      liquibase =
-        SpringLiquibaseUtil.createAsyncSpringLiquibase(
-          this.env,
-          executor,
-          liquibaseDataSource.getIfAvailable(),
-          liquibaseProperties,
-          dataSource.getIfUnique(),
-          dataSourceProperties
-        );
+      liquibase = SpringLiquibaseUtil.createAsyncSpringLiquibase(
+        this.env,
+        executor,
+        liquibaseDataSource.getIfAvailable(),
+        liquibaseProperties,
+        dataSource.getIfUnique(),
+        dataSourceProperties
+      );
     } else {
       log.debug("Configuring Liquibase with sync");
-      liquibase =
-        SpringLiquibaseUtil.createSpringLiquibase(
-          liquibaseDataSource.getIfAvailable(),
-          liquibaseProperties,
-          dataSource.getIfUnique(),
-          dataSourceProperties
-        );
+      liquibase = SpringLiquibaseUtil.createSpringLiquibase(
+        liquibaseDataSource.getIfAvailable(),
+        liquibaseProperties,
+        dataSource.getIfUnique(),
+        dataSourceProperties
+      );
     }
-    liquibase.setChangeLog("classpath:config/liquibase/master.xml");
+    liquibase.setChangeLog(changeLogClassPath);
     liquibase.setContexts(liquibaseProperties.getContexts());
     liquibase.setDefaultSchema(liquibaseProperties.getDefaultSchema());
     liquibase.setLiquibaseSchema(liquibaseProperties.getLiquibaseSchema());
@@ -69,7 +70,7 @@ public class LiquibaseConfiguration {
     liquibase.setDatabaseChangeLogLockTable(liquibaseProperties.getDatabaseChangeLogLockTable());
     liquibase.setDatabaseChangeLogTable(liquibaseProperties.getDatabaseChangeLogTable());
     liquibase.setDropFirst(liquibaseProperties.isDropFirst());
-    liquibase.setLabels(liquibaseProperties.getLabels());
+    liquibase.setLabelFilter(liquibaseProperties.getLabelFilter());
     liquibase.setChangeLogParameters(liquibaseProperties.getParameters());
     liquibase.setRollbackFile(liquibaseProperties.getRollbackFile());
     liquibase.setTestRollbackOnUpdate(liquibaseProperties.isTestRollbackOnUpdate());

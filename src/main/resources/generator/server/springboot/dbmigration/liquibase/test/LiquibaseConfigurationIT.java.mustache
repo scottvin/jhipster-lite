@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.secondary.liquibase;
+package {{packageName}}.wire.liquibase.infrastructure.secondary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +17,7 @@ class LiquibaseConfigurationIT {
   class Async {
 
     @Autowired
-    ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
     @Test
     void shouldGetLiquibaseAsync() {
@@ -32,7 +32,7 @@ class LiquibaseConfigurationIT {
   class Sync {
 
     @Autowired
-    ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
     @Test
     void shouldGetLiquibaseSync() {

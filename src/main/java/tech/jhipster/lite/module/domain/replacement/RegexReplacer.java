@@ -3,12 +3,17 @@ package tech.jhipster.lite.module.domain.replacement;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
 public record RegexReplacer(ReplacementCondition condition, Pattern pattern) implements ElementReplacer {
   public RegexReplacer(ReplacementCondition condition, String regex) {
     this(condition, buildPattern(regex));
+  }
+
+  public RegexReplacer {
+    Assert.notNull("condition", condition);
+    Assert.notNull("pattern", pattern);
   }
 
   private static Pattern buildPattern(String regex) {
@@ -17,13 +22,8 @@ public record RegexReplacer(ReplacementCondition condition, Pattern pattern) imp
     try {
       return Pattern.compile(regex);
     } catch (PatternSyntaxException e) {
-      throw new GeneratorException("Can't compile regex " + regex + ": " + e.getMessage(), e);
+      throw GeneratorException.technicalError("Can't compile regex " + regex + ": " + e.getMessage(), e);
     }
-  }
-
-  public RegexReplacer {
-    Assert.notNull("condition", condition);
-    Assert.notNull("pattern", pattern);
   }
 
   @Override

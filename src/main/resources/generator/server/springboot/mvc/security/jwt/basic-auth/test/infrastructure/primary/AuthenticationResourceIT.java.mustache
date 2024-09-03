@@ -4,13 +4,13 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import {{packageName}}.IntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import {{packageName}}.IntegrationTest;
 
 @IntegrationTest
 @AutoConfigureMockMvc
@@ -49,7 +49,7 @@ class AuthenticationResourceIT {
 
     mockMvc
       .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(query))
-      .andExpect(status().isUnauthorized())
+      .andExpect(status().isForbidden())
       .andExpect(jsonPath("$.id_token").doesNotExist())
       .andExpect(header().doesNotExist("Authorization"));
   }
@@ -60,7 +60,7 @@ class AuthenticationResourceIT {
 
     mockMvc
       .perform(post("/api/authenticate").contentType(MediaType.APPLICATION_JSON).content(query))
-      .andExpect(status().isUnauthorized())
+      .andExpect(status().isForbidden())
       .andExpect(jsonPath("$.id_token").doesNotExist())
       .andExpect(header().doesNotExist("Authorization"));
   }
@@ -75,16 +75,16 @@ class AuthenticationResourceIT {
     return new TestAuthenticationQueryBuilder();
   }
 
-  private static class TestAuthenticationQueryBuilder {
+  private static final class TestAuthenticationQueryBuilder {
 
     private static final String AUTHENTICATION_TEMPLATE =
       """
-        {
-          "username": "{USER}",
-          "password": "{PASSWORD}",
-          "rememberMe": {REMEMBER_ME}
-        }
-        """;
+      {
+        "username": "{USER}",
+        "password": "{PASSWORD}",
+        "rememberMe": {REMEMBER_ME}
+      }
+      """;
 
     private String username = "admin";
     private String password = "admin";
@@ -109,8 +109,7 @@ class AuthenticationResourceIT {
     }
 
     public String build() {
-      return AUTHENTICATION_TEMPLATE
-        .replace("{USER}", username)
+      return AUTHENTICATION_TEMPLATE.replace("{USER}", username)
         .replace("{PASSWORD}", password)
         .replace("{REMEMBER_ME}", String.valueOf(rememberMe));
     }

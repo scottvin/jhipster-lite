@@ -8,8 +8,6 @@ import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleAsserter;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleFile;
 
 @UnitTest
 class ReactJwtModuleFactoryTest {
@@ -19,74 +17,90 @@ class ReactJwtModuleFactoryTest {
   private static final ReactJwtModuleFactory factory = new ReactJwtModuleFactory();
 
   @Test
-  void shouldBuildModuleOnNotStyledApp() {
+  void shouldBuildModule() {
     JHipsterModule module = factory.buildModule(properties());
 
-    ModuleAsserter asserter = assertThatModuleWithFiles(module, packageJsonFile(), notStyledApp());
-
-    assertReactApp(asserter);
-  }
-
-  private ModuleFile notStyledApp() {
-    return file("src/test/resources/projects/react-app/App.tsx", APP_TSX);
-  }
-
-  @Test
-  void shouldBuildModuleOnStyledApp() {
-    JHipsterModule module = factory.buildModule(properties());
-
-    ModuleAsserter asserter = assertThatModuleWithFiles(module, packageJsonFile(), styledApp(), appCss());
+    JHipsterModuleAsserter asserter = assertThatModuleWithFiles(module, packageJsonFile(), app(), appCss(), indexTsx(), indexCss());
 
     assertReactApp(asserter);
     asserter
-      .createFile("src/main/webapp/app/common/primary/app/App.css")
+      .hasFile("src/main/webapp/app/common/primary/app/App.css")
       .containing(
         """
-               -moz-osx-font-smoothing: grayscale;
-               display: flex;
-               flex-direction: column;
-               justify-content:center;
-               align-items: center;
-            """
+          -moz-osx-font-smoothing: grayscale;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        """
+      )
+      .and()
+      .hasFile("src/main/webapp/app/index.tsx")
+      .containing(
+        """
+          <React.StrictMode>
+            <NextUIProvider>
+              <App />
+            </NextUIProvider>
+          </React.StrictMode>,
+        """
       );
   }
 
-  private ModuleFile styledApp() {
-    return file("src/test/resources/projects/react-app/StyledApp.tsx", APP_TSX);
+  private ModuleFile app() {
+    return file("src/test/resources/projects/react-app/App.tsx", APP_TSX);
   }
 
   private ModuleFile appCss() {
     return file("src/test/resources/projects/react-app/App.css", "src/main/webapp/app/common/primary/app/App.css");
   }
 
+  private ModuleFile indexTsx() {
+    return file("src/test/resources/projects/react-app/index.tsx", "src/main/webapp/app/index.tsx");
+  }
+
+  private ModuleFile indexCss() {
+    return file("src/test/resources/projects/react-app/index.css", "src/main/webapp/app/index.css");
+  }
+
   private JHipsterModuleProperties properties() {
     return JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).build();
   }
 
-  private void assertReactApp(ModuleAsserter asserter) {
+  private void assertReactApp(JHipsterModuleAsserter asserter) {
     asserter
-      .createFile("package.json")
+      .hasFile("package.json")
+      .containing(nodeDependency("autoprefixer"))
+      .containing(nodeDependency("postcss"))
+      .containing(nodeDependency("tailwindcss"))
       .containing(nodeDependency("react-hook-form"))
       .containing(nodeDependency("axios"))
       .containing(nodeDependency("@nextui-org/react"))
       .containing(nodeDependency("sass"))
       .and()
-      .createPrefixedFiles(
+      .hasPrefixedFiles(
         "src/main/webapp",
         "app/common/services/storage.ts",
         "app/login/primary/loginForm/index.tsx",
         "app/login/primary/loginModal/index.tsx",
         "app/login/services/login.ts"
       )
-      .createPrefixedFiles("src/main/webapp/app/login/primary/loginModal", "index.tsx", "interface.d.ts", "LoginModal.scss")
-      .createPrefixedFiles(
-        "src/test/javascript/spec",
+      .hasPrefixedFiles(
+        "src/main/webapp/app/login/primary/loginModal",
+        "EyeSlashFilledIcon.tsx",
+        "EyeFilledIcon.tsx",
+        "index.tsx",
+        "interface.d.ts",
+        "LoginModal.scss"
+      )
+      .hasPrefixedFiles(
+        "src/test/webapp/unit",
         "login/services/login.test.ts",
         "login/primary/loginForm/index.test.tsx",
         "login/primary/loginModal/index.test.tsx",
         "common/services/storage.test.ts"
       )
-      .createFile("src/main/webapp/app/common/primary/app/App.tsx")
+      .hasFile("src/main/webapp/app/common/primary/app/App.tsx")
       .containing("import LoginForm from '@/login/primary/loginForm';")
       .containing("<LoginForm />");
   }

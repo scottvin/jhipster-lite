@@ -1,11 +1,28 @@
 package tech.jhipster.lite.module.domain.properties;
 
-import tech.jhipster.lite.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
-class InvalidPropertyTypeException extends GeneratorException {
+final class InvalidPropertyTypeException extends GeneratorException {
 
   private InvalidPropertyTypeException(InvalidPropertyTypeExceptionBuilder builder) {
-    super("Can't get property " + builder.key + ", expecting " + builder.expectedType + " but is a " + builder.actualType);
+    super(
+      badRequest(PropertiesErrorKey.INVALID_PROPERTY_TYPE)
+        .message(buildMessage(builder))
+        .addParameter("propertyKey", builder.key)
+        .addParameter("expectedType", builder.expectedType.getName())
+        .addParameter("actualType", builder.actualType.getName())
+    );
+  }
+
+  private static String buildMessage(InvalidPropertyTypeExceptionBuilder builder) {
+    return new StringBuilder()
+      .append("Can't get property ")
+      .append(builder.key)
+      .append(", expecting ")
+      .append(builder.expectedType)
+      .append(" but is a ")
+      .append(builder.actualType)
+      .toString();
   }
 
   static InvalidPropertyTypeExceptionKeyBuilder builder() {
@@ -22,6 +39,7 @@ class InvalidPropertyTypeException extends GeneratorException {
     private Class<?> expectedType;
     private Class<?> actualType;
 
+    @Override
     public InvalidPropertyTypeExceptionExpectedTypeBuilder key(String key) {
       this.key = key;
 

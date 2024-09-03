@@ -8,13 +8,17 @@ import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 @Service
 public class PlaywrightApplicationService {
 
-  private PlaywrightModuleFactory factory;
+  private final PlaywrightModuleFactory factory;
 
   public PlaywrightApplicationService() {
     factory = new PlaywrightModuleFactory();
   }
 
-  public JHipsterModule buildModule(JHipsterModuleProperties properties) {
-    return factory.buildModule(properties);
+  public JHipsterModule buildComponentTestsModule(JHipsterModuleProperties properties) {
+    return factory.buildComponentTestsModule(properties);
+  }
+
+  public JHipsterModule buildE2ETestsModule(JHipsterModuleProperties properties) {
+    return factory.buildE2ETestsModule(properties);
   }
 }

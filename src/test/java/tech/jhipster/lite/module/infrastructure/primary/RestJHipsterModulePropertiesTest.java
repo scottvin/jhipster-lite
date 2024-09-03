@@ -8,19 +8,19 @@ import static tech.jhipster.lite.module.domain.JHipsterModulesFixture.*;
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.JsonHelper;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.projectfolder.domain.ProjectFolder;
+import tech.jhipster.lite.shared.projectfolder.domain.ProjectFolder;
 
 @UnitTest
 class RestJHipsterModulePropertiesTest {
 
-  private final ProjectFolder jHipsterProjectFolderFactory = mock(ProjectFolder.class);
+  private static final ProjectFolder jHipsterProjectFolderFactory = mock(ProjectFolder.class);
 
   @Test
   void shouldNotConvertToPropertiesWithInvalidProjectFolder() {
     when(jHipsterProjectFolderFactory.isInvalid("/test")).thenReturn(true);
 
-    assertThatThrownBy(() -> JsonHelper.readFromJson(json(), RestJHipsterModuleProperties.class).toDomain(jHipsterProjectFolderFactory))
-      .isExactlyInstanceOf(InvalidProjectFolderException.class);
+    assertThatThrownBy(() -> JsonHelper.readFromJson(json(), RestJHipsterModuleProperties.class).toDomain(jHipsterProjectFolderFactory)
+    ).isExactlyInstanceOf(InvalidProjectFolderException.class);
   }
 
   @Test
@@ -32,20 +32,20 @@ class RestJHipsterModulePropertiesTest {
 
   private static String json() {
     return """
-        {
-          "projectFolder": "/test",
-          "commit": true,
-          "properties": {
-            "packageName": "tech.jhipster.chips",
-            "prettierDefaultIndent": 2,
-            "projectName": "JHipster project",
-            "baseName": "jhipster",
-            "optionalString": "optional",
-            "mandatoryInteger": 42,
-            "mandatoryBoolean": true,
-            "optionalBoolean": true
-          }
-        }
-          """;
+    {
+      "projectFolder": "/test",
+      "commit": true,
+      "parameters": {
+        "packageName": "tech.jhipster.chips",
+        "indentSize": 2,
+        "projectName": "JHipster project",
+        "baseName": "jhipster",
+        "optionalString": "optional",
+        "mandatoryInteger": 42,
+        "mandatoryBoolean": true,
+        "optionalBoolean": true
+      }
+    }
+      """;
   }
 }

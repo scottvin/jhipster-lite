@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.dbmigration.mongock.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -16,23 +17,23 @@ class MongockModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
-      .createFile("pom.xml")
+      .hasFiles("documentation/mongock.md")
+      .hasFile("pom.xml")
       .containing(
         """
               <dependency>
                 <groupId>io.mongock</groupId>
                 <artifactId>mongock-bom</artifactId>
                 <version>${mongock.version}</version>
-                <scope>import</scope>
                 <type>pom</type>
+                <scope>import</scope>
               </dependency>
         """
       )
@@ -48,21 +49,18 @@ class MongockModuleFactoryTest {
         """
             <dependency>
               <groupId>io.mongock</groupId>
-              <artifactId>mongodb-springdata-v3-driver</artifactId>
+              <artifactId>mongodb-springdata-v4-driver</artifactId>
             </dependency>
         """
       )
       .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/secondary/mongock",
-        "MongockDatabaseConfiguration.java",
-        "dbmigration/InitialMigrationSetup.java"
-      )
-      .createJavaTests("com/jhipster/test/technical/infrastructure/secondary/mongock/dbmigration/InitialMigrationSetupTest.java")
-      .createFile("src/main/resources/config/application.properties")
-      .containing("mongock.migration-scan-package=com.jhipster.test.technical.infrastructure.secondary.mongock.dbmigration")
-      .and()
-      .createFile("src/test/resources/config/application.properties")
-      .containing("mongock.enabled=false");
+      .hasFiles("src/main/java/tech/jhipster/jhlitest/wire/mongock/infrastructure/secondary/MongockDatabaseConfiguration.java")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        mongock:
+          migration-scan-package: tech.jhipster.jhlitest
+        """
+      );
   }
 }

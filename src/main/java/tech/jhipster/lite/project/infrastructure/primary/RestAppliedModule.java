@@ -1,10 +1,11 @@
 package tech.jhipster.lite.project.infrastructure.primary;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import tech.jhipster.lite.project.domain.history.ProjectAction;
 
 @Schema(name = "appliedModule", description = "Information for an applied module")
-class RestAppliedModule {
+final class RestAppliedModule {
 
   private final String slug;
 
@@ -16,7 +17,7 @@ class RestAppliedModule {
     return new RestAppliedModule(action.module().get());
   }
 
-  @Schema(description = "Slug of the applied module", required = true)
+  @Schema(description = "Slug of the applied module", requiredMode = RequiredMode.REQUIRED)
   public String getSlug() {
     return slug;
   }

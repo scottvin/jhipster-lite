@@ -2,12 +2,13 @@ package tech.jhipster.lite.module.domain.javadependency;
 
 import java.util.Optional;
 import tech.jhipster.lite.module.domain.javabuild.VersionSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class ProjectJavaDependencies {
+public final class ProjectJavaDependencies {
 
   public static final ProjectJavaDependencies EMPTY = builder().versions(null).dependenciesManagements(null).dependencies(null);
 
-  private final JavaDependenciesVersions versions;
+  private final ProjectJavaDependenciesVersions versions;
   private final JavaDependencies dependenciesManagement;
   private final JavaDependencies dependencies;
 
@@ -17,9 +18,9 @@ public class ProjectJavaDependencies {
     dependencies = buildDependencies(builder.dependencies);
   }
 
-  private JavaDependenciesVersions buildVersions(JavaDependenciesVersions versions) {
+  private ProjectJavaDependenciesVersions buildVersions(ProjectJavaDependenciesVersions versions) {
     if (versions == null) {
-      return JavaDependenciesVersions.EMPTY;
+      return ProjectJavaDependenciesVersions.EMPTY;
     }
 
     return versions;
@@ -49,7 +50,7 @@ public class ProjectJavaDependencies {
     return dependenciesManagement.get(id);
   }
 
-  public JavaDependenciesVersions versions() {
+  public ProjectJavaDependenciesVersions versions() {
     return versions;
   }
 
@@ -61,18 +62,27 @@ public class ProjectJavaDependencies {
     return dependencies;
   }
 
-  public static class ProjectJavaDependenciesBuilder
+  public ProjectJavaDependencies merge(ProjectJavaDependencies other) {
+    Assert.notNull("other", other);
+
+    return builder()
+      .versions(versions.merge(other.versions()))
+      .dependenciesManagements(dependenciesManagement.merge(other.dependenciesManagement))
+      .dependencies(dependencies.merge(other.dependencies));
+  }
+
+  private static final class ProjectJavaDependenciesBuilder
     implements
       ProjectJavaDependenciesVersionsBuilder,
       ProjectJavaDependenciesDependenciesManagementBuilder,
       ProjectJavaDependenciesDependenciesBuilder {
 
-    private JavaDependenciesVersions versions;
+    private ProjectJavaDependenciesVersions versions;
     private JavaDependencies dependenciesManagement;
     private JavaDependencies dependencies;
 
     @Override
-    public ProjectJavaDependenciesDependenciesManagementBuilder versions(JavaDependenciesVersions versions) {
+    public ProjectJavaDependenciesDependenciesManagementBuilder versions(ProjectJavaDependenciesVersions versions) {
       this.versions = versions;
 
       return this;
@@ -94,7 +104,7 @@ public class ProjectJavaDependencies {
   }
 
   public interface ProjectJavaDependenciesVersionsBuilder {
-    ProjectJavaDependenciesDependenciesManagementBuilder versions(JavaDependenciesVersions versions);
+    ProjectJavaDependenciesDependenciesManagementBuilder versions(ProjectJavaDependenciesVersions versions);
   }
 
   public interface ProjectJavaDependenciesDependenciesManagementBuilder {

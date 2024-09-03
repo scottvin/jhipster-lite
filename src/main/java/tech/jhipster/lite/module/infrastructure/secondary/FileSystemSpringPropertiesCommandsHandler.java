@@ -8,32 +8,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.javaproperties.SpringProperties;
 import tech.jhipster.lite.module.domain.javaproperties.SpringProperty;
 import tech.jhipster.lite.module.domain.javaproperties.SpringPropertyType;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 @Service
 class FileSystemSpringPropertiesCommandsHandler {
 
-  private static final String DEFAULT_MAIN_FOLDER = "src/main/resources/config/";
-  private static final String DEFAULT_TEST_FOLDER = "src/test/resources/config/";
-  private static final Map<SpringPropertyType, List<String>> PROPERTIES_PATHS = buildPaths();
-
-  private static Map<SpringPropertyType, List<String>> buildPaths() {
-    return Map.of(
-      SpringPropertyType.MAIN_PROPERTIES,
-      List.of(DEFAULT_MAIN_FOLDER, "src/main/resources/"),
-      SpringPropertyType.MAIN_BOOTSTRAP_PROPERTIES,
-      List.of(DEFAULT_MAIN_FOLDER, "src/main/resources/"),
-      SpringPropertyType.TEST_PROPERTIES,
-      List.of(DEFAULT_TEST_FOLDER, "src/test/resources/"),
-      SpringPropertyType.TEST_BOOTSTRAP_PROPERTIES,
-      List.of(DEFAULT_TEST_FOLDER, "src/test/resources/")
-    );
-  }
+  private static final Map<SpringPropertyType, List<String>> PROPERTIES_PATHS = FileSystemJHipsterModulesRepository.buildPaths();
 
   public void handle(JHipsterProjectFolder projectFolder, SpringProperties properties) {
     Assert.notNull("projectFolder", projectFolder);
@@ -47,8 +31,7 @@ class FileSystemSpringPropertiesCommandsHandler {
   }
 
   private static Path getPath(JHipsterProjectFolder projectFolder, SpringProperty property) {
-    return PROPERTIES_PATHS
-      .get(property.type())
+    return PROPERTIES_PATHS.get(property.type())
       .stream()
       .map(toFilePath(projectFolder, property))
       .filter(Files::exists)
@@ -60,13 +43,12 @@ class FileSystemSpringPropertiesCommandsHandler {
     return folder -> projectFolder.filePath(folder + propertiesFilename(property));
   }
 
-  @Generated(reason = "Jacoco thinks there is a missed branch")
   private static Supplier<Path> defaultPropertiesFile(JHipsterProjectFolder projectFolder, SpringProperty property) {
     return switch (property.type()) {
-      case MAIN_PROPERTIES -> () -> projectFolder.filePath(DEFAULT_MAIN_FOLDER + propertiesFilename(property));
-      case MAIN_BOOTSTRAP_PROPERTIES -> () -> projectFolder.filePath(DEFAULT_MAIN_FOLDER + propertiesFilename(property));
-      case TEST_PROPERTIES -> () -> projectFolder.filePath(DEFAULT_TEST_FOLDER + propertiesFilename(property));
-      case TEST_BOOTSTRAP_PROPERTIES -> () -> projectFolder.filePath(DEFAULT_TEST_FOLDER + propertiesFilename(property));
+      case MAIN_PROPERTIES, MAIN_BOOTSTRAP_PROPERTIES -> () ->
+        projectFolder.filePath(FileSystemJHipsterModulesRepository.DEFAULT_MAIN_FOLDER + propertiesFilename(property));
+      case TEST_PROPERTIES, TEST_BOOTSTRAP_PROPERTIES -> () ->
+        projectFolder.filePath(FileSystemJHipsterModulesRepository.DEFAULT_TEST_FOLDER + propertiesFilename(property));
     };
   }
 

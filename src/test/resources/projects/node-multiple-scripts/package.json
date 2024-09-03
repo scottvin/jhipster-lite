@@ -9,15 +9,12 @@
     "serve": "vue-tsc -p tsconfig-build.json --noEmit && vite build --emptyOutDir"
   },
   "dependencies": {
-    "@playwright/test": "^6.1.1"
+    "@playwright/test": "6.1.1"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "2.1.0"
   },
   "engines": {
     "node": ">=16.13.0"
-  },
-  "cacheDirectories": [
-    "node_modules"
-  ]
+  }
 }

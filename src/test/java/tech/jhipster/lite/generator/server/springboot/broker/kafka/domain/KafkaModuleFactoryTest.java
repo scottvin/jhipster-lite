@@ -2,7 +2,6 @@ package tech.jhipster.lite.generator.server.springboot.broker.kafka.domain;
 
 import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.TestFileUtils.tmpDirForTest;
-import static tech.jhipster.lite.generator.project.domain.Constants.*;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -11,10 +10,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.docker.domain.DockerImage;
-import tech.jhipster.lite.docker.domain.DockerImages;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
+import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 
 @UnitTest
@@ -29,13 +28,12 @@ class KafkaModuleFactoryTest {
 
   @Test
   void shouldBuildKafkaModuleInit() {
-    when(dockerImages.get("confluentinc/cp-zookeeper")).thenReturn(new DockerImage("confluentinc/cp-zookeeper", "1.0.0"));
-    when(dockerImages.get("confluentinc/cp-kafka")).thenReturn(new DockerImage("confluentinc/cp-kafka", "1.0.0"));
+    when(dockerImages.get("apache/kafka-native")).thenReturn(new DockerImageVersion("apache/kafka-native", "1.0.0"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("myapp")
+      .put("kafkaClusterId", "my-cluster")
       .build();
 
     JHipsterModule module = factory.buildModuleInit(properties);
@@ -44,103 +42,127 @@ class KafkaModuleFactoryTest {
       module,
       pomFile(),
       new ModuleFile(
-        "src/main/resources/generator/server/springboot/core/IntegrationTest.java.mustache",
-        TEST_JAVA + "/" + properties.basePackage().path() + "/IntegrationTest.java"
+        "src/main/resources/generator/server/springboot/core/test/IntegrationTest.java.mustache",
+        "src/test/java/tech/jhipster/jhlitest/IntegrationTest.java"
       ),
       readmeFile()
     )
-      .createFile("pom.xml")
+      .hasFile("pom.xml")
       .containing("<artifactId>kafka-clients</artifactId>")
       .containing("<artifactId>kafka</artifactId>")
       .and()
-      .createFile(MAIN_DOCKER + "/kafka.yml")
+      .hasFile("src/main/docker/kafka.yml")
+      .containing("image: apache/kafka-native")
+      .containing("CLUSTER_ID: 'my-cluster'")
       .and()
-      .createFile(MAIN_RESOURCES + "/config/application.properties")
-      .containing("kafka.bootstrap-servers=localhost:9092")
-      .containing("kafka.consumer.'[key.deserializer]'=org.apache.kafka.common.serialization.StringDeserializer")
-      .containing("kafka.consumer.'[value.deserializer]'=org.apache.kafka.common.serialization.StringDeserializer")
-      .containing("kafka.consumer.'[group.id]'=myapp")
-      .containing("kafka.consumer.'[auto.offset.reset]'=earliest")
-      .containing("kafka.producer.'[key.serializer]'=org.apache.kafka.common.serialization.StringSerializer")
-      .containing("kafka.producer.'[value.serializer]'=org.apache.kafka.common.serialization.StringSerializer")
-      .containing("kafka.polling.timeout=10000")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        kafka:
+          bootstrap-servers: localhost:9092
+          consumer:
+            '[auto.offset.reset]': earliest
+            '[group.id]': myapp
+            '[key.deserializer]': org.apache.kafka.common.serialization.StringDeserializer
+            '[value.deserializer]': org.apache.kafka.common.serialization.StringDeserializer
+          polling:
+            timeout: 10000
+          producer:
+            '[key.serializer]': org.apache.kafka.common.serialization.StringSerializer
+            '[value.serializer]': org.apache.kafka.common.serialization.StringSerializer
+        """
+      )
       .and()
-      .createFile(TEST_RESOURCES + "/config/application.properties")
-      .containing("kafka.bootstrap-servers=localhost:9092")
-      .containing("kafka.consumer.'[key.deserializer]'=org.apache.kafka.common.serialization.StringDeserializer")
-      .containing("kafka.consumer.'[value.deserializer]'=org.apache.kafka.common.serialization.StringDeserializer")
-      .containing("kafka.consumer.'[group.id]'=myapp")
-      .containing("kafka.consumer.'[auto.offset.reset]'=earliest")
-      .containing("kafka.producer.'[key.serializer]'=org.apache.kafka.common.serialization.StringSerializer")
-      .containing("kafka.producer.'[value.serializer]'=org.apache.kafka.common.serialization.StringSerializer")
-      .containing("kafka.polling.timeout=10000")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        kafka:
+          bootstrap-servers: localhost:9092
+        """
+      )
       .and()
-      .createFile(TEST_JAVA + "/" + properties.basePackage().path() + "/KafkaTestContainerExtension.java")
+      .hasFile("src/test/java/tech/jhipster/jhlitest/KafkaTestContainerExtension.java")
+      .containing("apache/kafka-native")
       .and()
-      .createFile(TEST_JAVA + "/" + properties.basePackage().path() + "/IntegrationTest.java")
+      .hasFile("src/test/java/tech/jhipster/jhlitest/IntegrationTest.java")
       .containing("@ExtendWith(KafkaTestContainerExtension.class)")
       .and()
-      .createFile(MAIN_JAVA + "/" + properties.basePackage().path() + "/" + TECHNICAL_INFRASTRUCTURE_CONFIG + "/kafka/KafkaProperties.java")
+      .hasFile("src/main/java/tech/jhipster/jhlitest/wire/kafka/infrastructure/config/KafkaProperties.java")
       .and()
-      .createFile(
-        TEST_JAVA + "/" + properties.basePackage().path() + "/" + TECHNICAL_INFRASTRUCTURE_CONFIG + "/kafka/KafkaPropertiesTest.java"
-      )
+      .hasFile("src/test/java/tech/jhipster/jhlitest/wire/kafka/infrastructure/config/KafkaPropertiesTest.java")
       .and()
-      .createFile(
-        MAIN_JAVA + "/" + properties.basePackage().path() + "/" + TECHNICAL_INFRASTRUCTURE_CONFIG + "/kafka/KafkaConfiguration.java"
-      )
+      .hasFile("src/main/java/tech/jhipster/jhlitest/wire/kafka/infrastructure/config/KafkaConfiguration.java")
       .and()
-      .createPrefixedFiles("documentation", "apache-kafka.md")
-      .createFile("README.md")
+      .hasPrefixedFiles("documentation", "apache-kafka.md")
+      .hasFile("README.md")
       .containing("[Apache Kafka](documentation/apache-kafka.md)")
-      .and();
+      .containing(
+        """
+        ```bash
+        docker compose -f src/main/docker/kafka.yml up -d
+        ```
+        """
+      );
   }
 
   @Test
-  void shouldBuildKafkaModuleDummyProducerConsumer() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(tmpDirForTest())
-      .basePackage("com.jhipster.test")
+  void shouldBuildKafkaModuleSampleProducerConsumer() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("myapp")
       .build();
 
-    JHipsterModule module = factory.buildModuleDummyProducerConsumer(properties);
+    JHipsterModule module = factory.buildModuleSampleProducerConsumer(properties);
 
-    var dummyProducerPath = "dummy/infrastructure/secondary/kafka/producer";
-    var dummyConsumerPath = "dummy/infrastructure/primary/kafka/consumer";
+    var sampleProducerPath = "sample/infrastructure/secondary/kafka/producer";
+    var sampleConsumerPath = "sample/infrastructure/primary/kafka/consumer";
 
     assertThatModuleWithFiles(module, pomFile())
-      .createFile(MAIN_RESOURCES + "/config/application.properties")
-      .containing("kafka.topic.dummy=queue.myapp.dummy")
-      .and()
-      .createFile(TEST_RESOURCES + "/config/application.properties")
-      .containing("kafka.topic.dummy=queue.myapp.dummy")
-      .and()
-      .createFiles(
-        MAIN_JAVA + "/" + properties.basePackage().path() + "/" + dummyProducerPath + "/DummyProducer.java",
-        MAIN_JAVA + "/" + properties.basePackage().path() + "/" + dummyConsumerPath + "/AbstractConsumer.java",
-        MAIN_JAVA + "/" + properties.basePackage().path() + "/" + dummyConsumerPath + "/DummyConsumer.java"
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        kafka:
+          topic:
+            sample: queue.myapp.sample
+        """
       )
-      .createFiles(
-        TEST_JAVA + "/" + properties.basePackage().path() + "/" + dummyProducerPath + "/DummyProducerTest.java",
-        TEST_JAVA + "/" + properties.basePackage().path() + "/" + dummyProducerPath + "/DummyProducerIT.java",
-        TEST_JAVA + "/" + properties.basePackage().path() + "/" + dummyConsumerPath + "/DummyConsumerTest.java",
-        TEST_JAVA + "/" + properties.basePackage().path() + "/" + dummyConsumerPath + "/DummyConsumerIT.java"
+      .and()
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest",
+        sampleProducerPath + "/SampleProducer.java",
+        sampleConsumerPath + "/AbstractConsumer.java",
+        sampleConsumerPath + "/SampleConsumer.java"
+      )
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest",
+        sampleProducerPath + "/SampleProducerTest.java",
+        sampleProducerPath + "/SampleProducerIT.java",
+        sampleConsumerPath + "/SampleConsumerTest.java",
+        sampleConsumerPath + "/SampleConsumerIT.java"
       );
   }
 
   @Test
   void shouldBuildKafkaModuleAkhq() {
-    when(dockerImages.get("tchiotludo/akhq")).thenReturn(new DockerImage("tchiotludo/akhq", "1.0.0"));
+    when(dockerImages.get("tchiotludo/akhq")).thenReturn(new DockerImageVersion("tchiotludo/akhq", "1.0.0"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("myapp")
       .build();
 
     JHipsterModule module = factory.buildModuleAkhq(properties);
 
-    assertThatModuleWithFiles(module, pomFile()).createFile(MAIN_DOCKER + "/akhq.yml").and();
+    assertThatModuleWithFiles(module, pomFile(), readmeFile())
+      .hasFile("src/main/docker/akhq.yml")
+      .and()
+      .hasFile("README.md")
+      .containing(
+        """
+        ```bash
+        docker compose -f src/main/docker/akhq.yml up -d
+        ```
+        """
+      );
   }
 }

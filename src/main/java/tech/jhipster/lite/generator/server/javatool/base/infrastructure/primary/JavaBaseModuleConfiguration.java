@@ -1,23 +1,25 @@
 package tech.jhipster.lite.generator.server.javatool.base.infrastructure.primary;
 
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tech.jhipster.lite.generator.server.javatool.base.application.JavaBaseApplicationService;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleApiDoc;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleResource;
+import tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 
 @Configuration
 class JavaBaseModuleConfiguration {
 
   @Bean
   JHipsterModuleResource javaBaseModule(JavaBaseApplicationService javaBase) {
-    return JHipsterModuleResource
-      .builder()
-      .legacyUrl("/api/servers/java/base")
-      .slug("java-base")
+    return JHipsterModuleResource.builder()
+      .slug(JHLiteModuleSlug.JAVA_BASE)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addProjectBaseName().build())
-      .apiDoc(new JHipsterModuleApiDoc("Java", "Add Base classes and Error domain to project"))
+      .apiDoc("Java", "Add Base classes and Error domain to project")
+      .organization(JHipsterModuleOrganization.builder().addDependency(JAVA_BUILD_TOOL).build())
       .tags("server")
       .factory(javaBase::build);
   }

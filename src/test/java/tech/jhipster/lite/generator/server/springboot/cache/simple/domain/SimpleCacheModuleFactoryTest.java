@@ -16,24 +16,23 @@ class SimpleCacheModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
-      .createFile("pom.xml")
+      .hasFile("pom.xml")
       .containing(
         """
-             <dependency>
-               <groupId>org.springframework.boot</groupId>
-               <artifactId>spring-boot-starter-cache</artifactId>
-             </dependency>
-         """
+            <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-cache</artifactId>
+            </dependency>
+        """
       )
       .and()
-      .createJavaSources("com/jhipster/test/technical/infrastructure/secondary/cache/CacheConfiguration.java");
+      .hasJavaSources("tech/jhipster/jhlitest/wire/cache/infrastructure/secondary/CacheConfiguration.java");
   }
 }

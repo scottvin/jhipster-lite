@@ -14,17 +14,22 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import tech.jhipster.lite.common.domain.Enums;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertyDefinition;
+import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDefaultValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDescription;
-import tech.jhipster.lite.module.domain.properties.JHipsterPropertyExample;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyKey;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyType;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleApiDoc;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertyDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
+import tech.jhipster.lite.shared.enumeration.domain.Enums;
 
+@ImportRuntimeHints(NativeHints.class)
 @Configuration
 class OpenApiModulesConfiguration {
 
@@ -33,7 +38,6 @@ class OpenApiModulesConfiguration {
   private static final String MODULE_PROPERTY_DEFINITION_SCHEMA_NAME = "JHipsterModulePropertiesDefinition";
   private static final String MODULE_PROPERTIES_DEFINITION_SCHEMA_NAME = "JHipsterModulePropertyDefinition";
 
-  private static final Schema<?> PROJECT_DTO_SCHEMA = new Schema<>().$ref("#/components/schemas/ProjectDTO");
   private static final Schema<?> MODULE_PROPERTY_DEFINITION_SCHEMA = new Schema<>()
     .$ref("#/components/schemas/" + MODULE_PROPERTY_DEFINITION_SCHEMA_NAME);
   private static final Schema<?> MODULE_PROPERTIES_DEFINITION_SCHEMA = new Schema<>()
@@ -42,7 +46,7 @@ class OpenApiModulesConfiguration {
   private static final String JSON_MEDIA_TYPE = "application/json";
 
   @Bean
-  OpenApiCustomiser openApiModules(JHipsterModulesResources modules) {
+  OpenApiCustomizer openApiModules(JHipsterModulesResources modules) {
     return openApi -> {
       openApi
         .schema(MODULE_PROPERTIES_DEFINITION_SCHEMA_NAME, modulePropertyDefinitionSchema())
@@ -80,7 +84,7 @@ class OpenApiModulesConfiguration {
       .addProperty("mandatory", new Schema<>().type("boolean").description("True if the field is mandatory, false otherwise"))
       .addProperty("key", new Schema<>().type(STRING_TYPE).description("Key of this property"))
       .addProperty("description", new Schema<>().type(STRING_TYPE).description("Description of this property"))
-      .addProperty("example", new Schema<>().type(STRING_TYPE).description("Example value for this property"))
+      .addProperty("defaultValue", new Schema<>().type(STRING_TYPE).description("Default value for this property"))
       .required(List.of("type", "mandatory", "key"));
   }
 
@@ -119,17 +123,15 @@ class OpenApiModulesConfiguration {
   }
 
   private List<String> buildRequirements(JHipsterModuleResource module) {
-    return Stream
-      .concat(
-        Stream.of("projectFolder"),
-        module
-          .propertiesDefinition()
-          .stream()
-          .filter(JHipsterModulePropertyDefinition::isMandatory)
-          .map(JHipsterModulePropertyDefinition::key)
-          .map(JHipsterPropertyKey::get)
-      )
-      .toList();
+    return Stream.concat(
+      Stream.of("projectFolder"),
+      module
+        .propertiesDefinition()
+        .stream()
+        .filter(JHipsterModulePropertyDefinition::isMandatory)
+        .map(JHipsterModulePropertyDefinition::key)
+        .map(JHipsterPropertyKey::get)
+    ).toList();
   }
 
   @SuppressWarnings("rawtypes")
@@ -142,31 +144,16 @@ class OpenApiModulesConfiguration {
       new Schema<>()
         .type(Enums.map(property.type(), OpenApiFieldType.class).key())
         .description(property.description().map(JHipsterPropertyDescription::get).orElse(null))
-        .example(property.example().map(JHipsterPropertyExample::get).orElse(null));
+        .example(property.defaultValue().map(JHipsterPropertyDefaultValue::get).orElse(null));
   }
 
   private Paths buildJHipsterModulesPaths(JHipsterModulesResources modules) {
     Paths paths = new Paths();
 
-    paths.putAll(legacyModules(modules));
     paths.putAll(modulesPropertiesDefinitions(modules));
     paths.putAll(modulesApplications(modules));
 
     return paths;
-  }
-
-  private Map<String, PathItem> legacyModules(JHipsterModulesResources modules) {
-    return modules.stream().collect(Collectors.toMap(JHipsterModuleResource::legacyUrl, module -> legacyModuleApiDoc(module.apiDoc())));
-  }
-
-  private PathItem legacyModuleApiDoc(JHipsterModuleApiDoc apiDoc) {
-    RequestBody requestBody = new RequestBody()
-      .required(true)
-      .content(new Content().addMediaType(JSON_MEDIA_TYPE, new MediaType().schema(PROJECT_DTO_SCHEMA)));
-
-    Operation postOperation = new Operation().summary(apiDoc.operation()).tags(List.of(apiDoc.tag())).requestBody(requestBody);
-
-    return new PathItem().post(postOperation);
   }
 
   private Map<String, PathItem> modulesPropertiesDefinitions(JHipsterModulesResources modules) {
@@ -176,10 +163,10 @@ class OpenApiModulesConfiguration {
   }
 
   private PathItem modulePropertiesDefinition(JHipsterModuleApiDoc apiDoc, JHipsterModuleSlug slug) {
-    Operation getOpetation = new Operation()
+    Operation getOperation = new Operation()
       .operationId(slug.get() + "-properties-definition")
       .summary("Get " + slug.get() + " properties definitions")
-      .tags(List.of(apiDoc.tag()))
+      .tags(apiDoc.group().list())
       .responses(
         new ApiResponses()
           .addApiResponse(
@@ -190,7 +177,7 @@ class OpenApiModulesConfiguration {
           )
       );
 
-    return new PathItem().get(getOpetation);
+    return new PathItem().get(getOperation);
   }
 
   private Map<String, PathItem> modulesApplications(JHipsterModulesResources modules) {
@@ -207,8 +194,8 @@ class OpenApiModulesConfiguration {
   private PathItem moduleApplicationDefinition(JHipsterModuleApiDoc apiDoc, JHipsterModuleSlug slug) {
     Operation postOperation = new Operation()
       .operationId(slug.get() + "-application")
-      .summary(apiDoc.operation())
-      .tags(List.of(apiDoc.tag()))
+      .summary(apiDoc.operation().get())
+      .tags(apiDoc.group().list())
       .requestBody(
         new RequestBody()
           .required(true)

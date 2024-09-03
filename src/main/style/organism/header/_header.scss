@@ -1,0 +1,20 @@
+$jhlite-header-color-background: $jhlite-global-color-fill-secondary;
+
+.jhlite-header {
+  display: flex;
+  align-items: center;
+  background-color: $jhlite-header-color-background;
+  padding: 0.5rem 1rem;
+
+  &--slot {
+    &.-expand {
+      flex-grow: 1;
+    }
+  }
+
+  .jhlite-with-theme-switch {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+}

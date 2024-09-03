@@ -1,5 +1,7 @@
-package {{packageName}}.technical.infrastructure.config.pulsar;
+package {{packageName}}.wire.pulsar.infrastructure.config;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.pulsar.client.impl.conf.ClientConfigurationData;
 import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.apache.pulsar.client.impl.conf.ProducerConfigurationData;
@@ -7,9 +9,6 @@ import org.apache.pulsar.shade.com.fasterxml.jackson.core.JsonProcessingExceptio
 import org.apache.pulsar.shade.com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "pulsar")

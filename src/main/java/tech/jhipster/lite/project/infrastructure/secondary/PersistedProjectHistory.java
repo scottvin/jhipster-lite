@@ -5,7 +5,7 @@ import java.util.Collection;
 import tech.jhipster.lite.project.domain.ProjectPath;
 import tech.jhipster.lite.project.domain.history.ProjectHistory;
 
-class PersistedProjectHistory {
+final class PersistedProjectHistory {
 
   private final Collection<PersistedProjectAction> actions;
 

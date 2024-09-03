@@ -1,47 +1,37 @@
 package tech.jhipster.lite.generator.server.springboot.dbmigration.liquibase.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
+import static tech.jhipster.lite.module.domain.JHipsterModule.from;
+import static tech.jhipster.lite.module.domain.properties.SpringConfigurationFormat.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterSource;
 import tech.jhipster.lite.module.domain.LogLevel;
-import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
-import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class LiquibaseModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/dbmigration/liquibase");
 
-  private static final String LIQUIBASE_SECONDARY = "technical/infrastructure/secondary/liquibase";
+  private static final String LIQUIBASE_SECONDARY = "wire/liquibase/infrastructure/secondary";
 
   private static final String LIQUIBASE = "liquibase";
 
   public JHipsterModule buildModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
 
-    String packagePath = properties.packagePath();
-
     //@formatter:off
     return moduleBuilder(properties)
       .javaDependencies()
         .addDependency(groupId("org.liquibase"), artifactId("liquibase-core"), versionSlug(LIQUIBASE))
-        .addDependency(h2Dependency())
+        .and()
+      .springMainProperties()
+        .set(propertyKey("spring.liquibase.change-log"), propertyValue("classpath:config/liquibase/master.xml"))
         .and()
       .files()
         .add(SOURCE.file("resources/master.xml"), to("src/main/resources/config/liquibase/master.xml"))
-        .batch(SOURCE.append("main"), toSrcMainJava().append(packagePath).append(LIQUIBASE_SECONDARY))
-          .addTemplate("AsyncSpringLiquibase.java")
-          .addTemplate("LiquibaseConfiguration.java")
-          .addTemplate("SpringLiquibaseUtil.java")
-          .and()
-        .batch(SOURCE.append("test"), toSrcTestJava().append(packagePath).append(LIQUIBASE_SECONDARY))
-          .addTemplate("AsyncSpringLiquibaseTest.java")
-          .addTemplate("LiquibaseConfigurationIT.java")
-          .addTemplate("SpringLiquibaseUtilTest.java")
-          .and()
-        .add(SOURCE.template("test/LogbackRecorder.java"), toSrcTestJava().append(packagePath).append("LogbackRecorder.java"))
+        .add(SOURCE.file("resources/0000000000_example.xml"), to("src/main/resources/config/liquibase/changelog/0000000000_example.xml"))
         .and()
       .springMainLogger(LIQUIBASE, LogLevel.WARN)
       .springMainLogger("LiquibaseSchemaResolver", LogLevel.INFO)
@@ -53,7 +43,28 @@ public class LiquibaseModuleFactory {
     //@formatter:on
   }
 
-  private JavaDependency h2Dependency() {
-    return javaDependency().groupId("com.h2database").artifactId("h2").scope(JavaDependencyScope.TEST).build();
+  public JHipsterModule buildAsyncModule(JHipsterModuleProperties properties) {
+    String packagePath = properties.packagePath();
+
+    //@formatter:off
+    return moduleBuilder(properties)
+      .context()
+        .put("yamlSpringConfigurationFormat", properties.springConfigurationFormat() == YAML)
+        .put("propertiesSpringConfigurationFormat", properties.springConfigurationFormat() == PROPERTIES)
+        .and()
+      .files()
+        .batch(SOURCE.append("main"), toSrcMainJava().append(packagePath).append(LIQUIBASE_SECONDARY))
+          .addTemplate("AsyncSpringLiquibase.java")
+          .addTemplate("LiquibaseConfiguration.java")
+          .addTemplate("SpringLiquibaseUtil.java")
+          .and()
+        .batch(SOURCE.append("test"), toSrcTestJava().append(packagePath).append(LIQUIBASE_SECONDARY))
+          .addTemplate("AsyncSpringLiquibaseTest.java")
+          .addTemplate("LiquibaseConfigurationIT.java")
+          .addTemplate("SpringLiquibaseUtilTest.java")
+          .and()
+        .and()
+      .build();
+    //@formatter:on
   }
 }

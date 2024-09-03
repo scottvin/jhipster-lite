@@ -1,13 +1,10 @@
-package {{packageName}}.authentication.infrastructure.primary;
+package {{packageName}}.shared.authentication.infrastructure.primary;
 
 import static org.assertj.core.api.Assertions.*;
 
 import ch.qos.logback.classic.Level;
-import {{packageName}}.LogsSpy;
-import {{packageName}}.UnitTest;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -19,26 +16,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import {{packageName}}.Logs;
+import {{packageName}}.LogsSpy;
+import {{packageName}}.LogsSpyExtension;
+import {{packageName}}.UnitTest;
 
 @UnitTest
-@ExtendWith({ LogsSpy.class, MockitoExtension.class })
+@ExtendWith({ LogsSpyExtension.class, MockitoExtension.class })
 class JwtReaderTest {
 
   private static final SecretKey KEY = Keys.hmacShaKeyFor(
     "fd54a45s65fds737b9aafcb3412e07ed99b267f33413274720ddbb7f6c5e64e9f14075f2d7ed041592f0b7657baf8".getBytes(StandardCharsets.UTF_8)
   );
 
-  private final JwtReader reader;
-  private final LogsSpy logs;
+  private final JwtReader reader = new JwtReader(parser());
 
-  public JwtReaderTest(LogsSpy logs) {
-    this.logs = logs;
-
-    reader = new JwtReader(parser());
-  }
+  @Logs
+  private LogsSpy logs;
 
   private JwtParser parser() {
-    return Jwts.parserBuilder().setSigningKey(KEY).build();
+    return Jwts.parser().verifyWith(KEY).build();
   }
 
   @Test
@@ -54,7 +51,7 @@ class JwtReaderTest {
   }
 
   @Test
-  void shouldNotAutenticateUserFromInvalidToken() {
+  void shouldNotAuthenticateUserFromInvalidToken() {
     assertThat(reader.read("invalid")).isEmpty();
     logs.shouldHave(Level.INFO, "Invalid JWT token");
   }
@@ -64,17 +61,18 @@ class JwtReaderTest {
     Authentication authentication = reader.read(userToken()).get();
 
     assertThat(((User) authentication.getPrincipal()).getUsername()).isEqualTo("test");
-    assertThat(authentication.getAuthorities().stream().map(SimpleGrantedAuthority.class::cast))
-      .containsExactly(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
+    assertThat(authentication.getAuthorities().stream().map(SimpleGrantedAuthority.class::cast)).containsExactly(
+      new SimpleGrantedAuthority("ROLE_USER"),
+      new SimpleGrantedAuthority("ROLE_ADMIN")
+    );
   }
 
   private String userToken() {
-    return Jwts
-      .builder()
-      .setSubject("test")
+    return Jwts.builder()
+      .subject("test")
       .claim("auth", "ROLE_USER,ROLE_ADMIN,,")
-      .signWith(KEY, SignatureAlgorithm.HS512)
-      .setExpiration(Date.from(Instant.now().plusSeconds(120)))
+      .signWith(KEY, Jwts.SIG.HS512)
+      .expiration(Date.from(Instant.now().plusSeconds(120)))
       .compact();
   }
 
@@ -87,11 +85,6 @@ class JwtReaderTest {
   }
 
   private String userTokenWithoutRoles() {
-    return Jwts
-      .builder()
-      .setSubject("test")
-      .signWith(KEY, SignatureAlgorithm.HS512)
-      .setExpiration(Date.from(Instant.now().plusSeconds(120)))
-      .compact();
+    return Jwts.builder().subject("test").signWith(KEY, Jwts.SIG.HS512).expiration(Date.from(Instant.now().plusSeconds(120))).compact();
   }
 }

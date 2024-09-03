@@ -8,7 +8,6 @@ import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleFile;
 
 @UnitTest
 class JwtAuthenticationModuleFactoryTest {
@@ -17,16 +16,15 @@ class JwtAuthenticationModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .projectBaseName("jhipster")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile(), integrationTestFile(), lockbackFile(), testLockbackFile())
-      .createFile("pom.xml")
+    assertThatModuleWithFiles(module, pomFile(), integrationTestFile(), logbackFile(), testLogbackFile())
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -40,7 +38,7 @@ class JwtAuthenticationModuleFactoryTest {
             <dependency>
               <groupId>io.jsonwebtoken</groupId>
               <artifactId>jjwt-api</artifactId>
-              <version>${jjwt.version}</version>
+              <version>${json-web-token.version}</version>
             </dependency>
         """
       )
@@ -49,7 +47,7 @@ class JwtAuthenticationModuleFactoryTest {
             <dependency>
               <groupId>io.jsonwebtoken</groupId>
               <artifactId>jjwt-impl</artifactId>
-              <version>${jjwt.version}</version>
+              <version>${json-web-token.version}</version>
               <scope>runtime</scope>
             </dependency>
         """
@@ -59,7 +57,7 @@ class JwtAuthenticationModuleFactoryTest {
             <dependency>
               <groupId>io.jsonwebtoken</groupId>
               <artifactId>jjwt-jackson</artifactId>
-              <version>${jjwt.version}</version>
+              <version>${json-web-token.version}</version>
               <scope>runtime</scope>
             </dependency>
         """
@@ -74,50 +72,93 @@ class JwtAuthenticationModuleFactoryTest {
         """
       )
       .and()
-      .createFiles("src/main/java/com/jhipster/test/authentication/package-info.java")
-      .createPrefixedFiles("src/main/java/com/jhipster/test/authentication/domain", "Role.java", "Roles.java", "Username.java")
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/authentication/infrastructure/primary",
+      .hasFiles("src/main/java/tech/jhipster/jhlitest/shared/authentication/package-info.java")
+      .hasPrefixedFiles("src/main/java/tech/jhipster/jhlitest/shared/authentication/domain", "Role.java", "Roles.java", "Username.java")
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/shared/authentication/application",
         "AuthenticatedUser.java",
+        "NotAuthenticatedUserException.java",
         "AuthenticationException.java",
+        "UnknownAuthenticationException.java"
+      )
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/shared/authentication/infrastructure/primary",
         "AuthenticationExceptionAdvice.java",
         "AuthenticationTokenReader.java",
         "JwtAuthenticationProperties.java",
         "JWTConfigurer.java",
         "JWTFilter.java",
         "JwtReader.java",
-        "NotAuthenticatedUserException.java",
-        "SecurityConfiguration.java",
-        "SecurityProblemSupport.java",
-        "UnknownAuthenticationException.java"
+        "SecurityConfiguration.java"
       )
-      .createPrefixedFiles("src/test/java/com/jhipster/test/authentication/domain", "RolesTest.java", "RoleTest.java", "UsernameTest.java")
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test/authentication/infrastructure/primary",
-        "AuthenticatedUserTest.java",
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/shared/authentication/domain",
+        "RolesTest.java",
+        "RoleTest.java",
+        "UsernameTest.java"
+      )
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/shared/authentication/application/AuthenticatedUserTest.java")
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/shared/authentication/infrastructure/primary",
         "AuthenticationExceptionAdviceIT.java",
         "JWTFilterTest.java",
         "JwtReaderTest.java",
         "AccountExceptionResource.java"
       )
-      .createFile("src/test/java/com/jhipster/test/IntegrationTest.java")
+      .hasFile("src/test/java/tech/jhipster/jhlitest/IntegrationTest.java")
       .containing("@WithMockUser")
       .containing("import org.springframework.security.test.context.support.WithMockUser;")
       .and()
-      .createFile("src/main/resources/config/application.properties")
-      .containing("application.security.jwt-base64-secret=")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        application:
+          security:
+            jwt-base64-secret:"""
+      )
       .and()
-      .createFile("src/test/resources/config/application.properties")
-      .containing("application.security.jwt-base64-secret=")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        application:
+          security:
+            jwt-base64-secret:"""
+      )
       .and()
-      .createFile("src/main/resources/logback-spring.xml")
+      .hasFile("src/main/resources/logback-spring.xml")
       .containing("<logger name=\"org.springframework.security\" level=\"WARN\" />")
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("<logger name=\"org.springframework.security\" level=\"WARN\" />");
   }
 
+  @Test
+  void shouldBuildModuleWithJwtBase64Secret() {
+    String jwtBase64Secret = "Y2EyZjQ2YmNmZjMwMTE5YjcxOTBjYzZiYWVjZjY0NzZlMzNmNjY5MjgwMjUxZDNjOTA3N2M5YjAyYTg3ODEzMA==";
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
+      .projectBaseName("jhipster")
+      .put("jwtBase64Secret", jwtBase64Secret)
+      .build();
+
+    JHipsterModule module = factory.buildModule(properties);
+
+    String config =
+      """
+      application:
+        security:
+          jwt-base64-secret:""" +
+      " " +
+      jwtBase64Secret;
+    assertThatModuleWithFiles(module, pomFile(), integrationTestFile(), logbackFile(), testLogbackFile())
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(config)
+      .and()
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(config);
+  }
+
   private ModuleFile integrationTestFile() {
-    return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/com/jhipster/test/IntegrationTest.java");
+    return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/tech/jhipster/jhlitest/IntegrationTest.java");
   }
 }

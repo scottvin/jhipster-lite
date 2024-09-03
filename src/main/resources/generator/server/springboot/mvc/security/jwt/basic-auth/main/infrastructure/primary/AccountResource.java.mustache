@@ -1,12 +1,12 @@
 package {{packageName}}.account.infrastructure.primary;
 
-import {{packageName}}.authentication.domain.Role;
-import {{packageName}}.authentication.infrastructure.primary.AuthenticatedUser;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import {{packageName}}.shared.authentication.application.AuthenticatedUser;
+import {{packageName}}.shared.authentication.domain.Role;
 
 @RestController
 @RequestMapping("/api")

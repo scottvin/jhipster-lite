@@ -1,24 +1,29 @@
 package tech.jhipster.lite.module.infrastructure.primary;
 
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertyDefinition;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDefaultValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDescription;
-import tech.jhipster.lite.module.domain.properties.JHipsterPropertyExample;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyType;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertyDefinition;
 
-class RestJHipsterModulePropertyDefinition {
+@Schema(name = "JHipsterModulePropertyDefinition", description = "Definition for a given property")
+final class RestJHipsterModulePropertyDefinition {
 
   private final JHipsterPropertyType type;
   private final boolean mandatory;
   private final String key;
   private final String description;
-  private final String example;
+  private final String defaultValue;
+  private final int order;
 
   private RestJHipsterModulePropertyDefinition(RestJHipsterModulePropertyDefinitionBuilder builder) {
     type = builder.type;
     mandatory = builder.mandatory;
     key = builder.key;
     description = builder.description;
-    example = builder.example;
+    defaultValue = builder.defaultValue;
+    order = builder.order;
   }
 
   static RestJHipsterModulePropertyDefinition from(JHipsterModulePropertyDefinition propertyDefinition) {
@@ -27,37 +32,49 @@ class RestJHipsterModulePropertyDefinition {
       .mandatory(propertyDefinition.isMandatory())
       .key(propertyDefinition.key().get())
       .description(propertyDefinition.description().map(JHipsterPropertyDescription::get).orElse(null))
-      .example(propertyDefinition.example().map(JHipsterPropertyExample::get).orElse(null))
+      .defaultValue(propertyDefinition.defaultValue().map(JHipsterPropertyDefaultValue::get).orElse(null))
+      .order(propertyDefinition.order())
       .build();
   }
 
+  @Schema(description = "Type of this property", requiredMode = RequiredMode.REQUIRED)
   public JHipsterPropertyType getType() {
     return type;
   }
 
+  @Schema(description = "True if this property is mandatory, false otherwise", requiredMode = RequiredMode.REQUIRED)
   public boolean isMandatory() {
     return mandatory;
   }
 
+  @Schema(description = "Key of this property", requiredMode = RequiredMode.REQUIRED)
   public String getKey() {
     return key;
   }
 
+  @Schema(description = "Full text description of this property")
   public String getDescription() {
     return description;
   }
 
-  public String getExample() {
-    return example;
+  @Schema(description = "Default value for this property")
+  public String getDefaultValue() {
+    return defaultValue;
   }
 
-  private static class RestJHipsterModulePropertyDefinitionBuilder {
+  @Schema(description = "Order (sort in natural int sorting) for this property", requiredMode = RequiredMode.REQUIRED)
+  public int getOrder() {
+    return order;
+  }
+
+  private static final class RestJHipsterModulePropertyDefinitionBuilder {
 
     private JHipsterPropertyType type;
     private boolean mandatory;
     private String key;
     private String description;
-    private String example;
+    private String defaultValue;
+    private int order;
 
     public RestJHipsterModulePropertyDefinitionBuilder type(JHipsterPropertyType type) {
       this.type = type;
@@ -83,8 +100,14 @@ class RestJHipsterModulePropertyDefinition {
       return this;
     }
 
-    public RestJHipsterModulePropertyDefinitionBuilder example(String example) {
-      this.example = example;
+    public RestJHipsterModulePropertyDefinitionBuilder defaultValue(String defaultValue) {
+      this.defaultValue = defaultValue;
+
+      return this;
+    }
+
+    public RestJHipsterModulePropertyDefinitionBuilder order(int order) {
+      this.order = order;
 
       return this;
     }

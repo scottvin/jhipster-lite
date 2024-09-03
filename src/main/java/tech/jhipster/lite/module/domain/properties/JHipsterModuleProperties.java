@@ -1,47 +1,48 @@
 package tech.jhipster.lite.module.domain.properties;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.Indentation;
+import tech.jhipster.lite.module.domain.javadependency.Version;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class JHipsterModuleProperties {
 
-  public static final String BASE_PACKAGE_PROPERTY = "packageName";
-  public static final String INDENTATION_PROPERTY = "prettierDefaultIndent";
-  public static final String PROJECT_NAME_PROPERTY = "projectName";
-  public static final String PROJECT_BASE_NAME_PROPERTY = "baseName";
-  public static final String SERVER_PORT_PROPERTY = "serverPort";
+  public static final String BASE_PACKAGE_PARAMETER = "packageName";
+  public static final String INDENTATION_PARAMETER = "indentSize";
+  public static final String PROJECT_NAME_PARAMETER = "projectName";
+  public static final String PROJECT_BASE_NAME_PARAMETER = "baseName";
+  public static final String SERVER_PORT_PARAMETER = "serverPort";
+  public static final String SPRING_CONFIGURATION_FORMAT = "springConfigurationFormat";
+  public static final String JAVA_VERSION = "javaVersion";
+  public static final String PROJECT_BUILD_DIRECTORY = "projectBuildDirectory";
 
   private final JHipsterProjectFolder projectFolder;
   private final boolean commitModule;
-  private final Map<String, Object> properties;
+  private final JHipsterModuleParameters parameters;
+
   private final Indentation indentation;
   private final JHipsterBasePackage basePackage;
   private final JHipsterProjectName projectName;
   private final JHipsterProjectBaseName projectBaseName;
   private final JHipsterServerPort serverPort;
+  private final SpringConfigurationFormat springConfigurationFormat;
+  private final Version javaVersion = new Version("21");
 
-  public JHipsterModuleProperties(String projectFolder, boolean commitModule, Map<String, Object> properties) {
-    this(new JHipsterProjectFolder(projectFolder), commitModule, properties);
-  }
-
-  public JHipsterModuleProperties(JHipsterProjectFolder projectFolder, boolean commitModule, Map<String, Object> properties) {
-    Assert.notNull("projectFolder", projectFolder);
-
-    this.projectFolder = projectFolder;
+  public JHipsterModuleProperties(String projectFolder, boolean commitModule, Map<String, Object> parameters) {
+    this.projectFolder = new JHipsterProjectFolder(projectFolder);
     this.commitModule = commitModule;
-    this.properties = JHipsterCollections.immutable(properties);
+    this.parameters = new JHipsterModuleParameters(parameters);
 
-    indentation = Indentation.from(getOrDefault(INDENTATION_PROPERTY, null, Integer.class));
-    basePackage = new JHipsterBasePackage(getOrDefault(BASE_PACKAGE_PROPERTY, null, String.class));
-    projectName = new JHipsterProjectName(getOrDefault(PROJECT_NAME_PROPERTY, null, String.class));
-    projectBaseName = new JHipsterProjectBaseName(getOrDefault(PROJECT_BASE_NAME_PROPERTY, null, String.class));
-    serverPort = new JHipsterServerPort(getOrDefault(SERVER_PORT_PROPERTY, null, Integer.class));
-  }
-
-  public static JHipsterModuleProperties defaultProperties(JHipsterProjectFolder projectFolder) {
-    return new JHipsterModuleProperties(projectFolder, false, null);
+    indentation = Indentation.from(this.parameters.getOrDefault(INDENTATION_PARAMETER, null, Integer.class));
+    basePackage = new JHipsterBasePackage(this.parameters.getOrDefault(BASE_PACKAGE_PARAMETER, null, String.class));
+    projectName = new JHipsterProjectName(this.parameters.getOrDefault(PROJECT_NAME_PARAMETER, null, String.class));
+    projectBaseName = new JHipsterProjectBaseName(this.parameters.getOrDefault(PROJECT_BASE_NAME_PARAMETER, null, String.class));
+    serverPort = new JHipsterServerPort(this.parameters.getOrDefault(SERVER_PORT_PARAMETER, null, Integer.class));
+    springConfigurationFormat = SpringConfigurationFormat.from(
+      this.parameters.getOrDefault(SPRING_CONFIGURATION_FORMAT, SpringConfigurationFormat.YAML.get(), String.class)
+    );
   }
 
   public JHipsterProjectFolder projectFolder() {
@@ -52,30 +53,43 @@ public class JHipsterModuleProperties {
     return commitModule;
   }
 
+  public Version javaVersion() {
+    return javaVersion;
+  }
+
   public String getString(String key) {
-    return get(key, String.class);
+    return parameters.get(key, String.class);
   }
 
   public String getOrDefaultString(String key, String defaultValue) {
     Assert.notBlank("defaultValue", defaultValue);
 
-    return getOrDefault(key, defaultValue, String.class);
+    return parameters.getOrDefault(key, defaultValue, String.class, String::isBlank);
+  }
+
+  public Instant getInstantOrDefault(String key, Instant defaultValue) {
+    String date = getOrDefaultString(key, defaultValue.toString());
+    try {
+      return Instant.parse(date);
+    } catch (DateTimeParseException ex) {
+      throw InvalidPropertyTypeException.builder().key(key).expectedType(Instant.class).actualType(String.class);
+    }
   }
 
   public boolean getBoolean(String key) {
-    return get(key, Boolean.class);
+    return parameters.get(key, Boolean.class);
   }
 
   public boolean getOrDefaultBoolean(String key, boolean defaultValue) {
-    return getOrDefault(key, defaultValue, Boolean.class);
+    return parameters.getOrDefault(key, defaultValue, Boolean.class);
   }
 
   public int getInteger(String key) {
-    return get(key, Integer.class);
+    return parameters.get(key, Integer.class);
   }
 
   public int getOrDefaultInteger(String key, int defaultValue) {
-    return getOrDefault(key, defaultValue, Integer.class);
+    return parameters.getOrDefault(key, defaultValue, Integer.class);
   }
 
   public Indentation indentation() {
@@ -102,33 +116,16 @@ public class JHipsterModuleProperties {
     return serverPort;
   }
 
-  private <T> T getOrDefault(String key, T defaultValue, Class<T> clazz) {
-    Assert.notBlank("key", key);
-
-    if (!properties.containsKey(key)) {
-      return defaultValue;
-    }
-
-    return get(key, clazz);
+  public SpringConfigurationFormat springConfigurationFormat() {
+    return springConfigurationFormat;
   }
 
-  private <T> T get(String key, Class<T> clazz) {
-    Assert.notBlank("key", key);
-
-    Object property = properties.get(key);
-
-    if (property == null) {
-      throw new UnknownPropertyException(key);
-    }
-
-    if (clazz.isInstance(property)) {
-      return clazz.cast(property);
-    }
-
-    throw InvalidPropertyTypeException.builder().key(key).expectedType(clazz).actualType(property.getClass());
+  public Map<String, Object> getParameters() {
+    return parameters.get();
   }
 
-  public Map<String, Object> get() {
-    return properties;
+  @Override
+  public String toString() {
+    return String.valueOf(projectName);
   }
 }

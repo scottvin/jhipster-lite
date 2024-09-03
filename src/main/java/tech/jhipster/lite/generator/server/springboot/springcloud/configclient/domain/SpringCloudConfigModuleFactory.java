@@ -1,22 +1,25 @@
 package tech.jhipster.lite.generator.server.springboot.springcloud.configclient.domain;
 
-import static tech.jhipster.lite.generator.server.springboot.springcloud.common.domain.SpringCloudModuleDependencies.*;
+import static tech.jhipster.lite.generator.server.springboot.springcloud.common.domain.SpringCloudModuleDependencies.SPRING_CLOUD_GROUP;
+import static tech.jhipster.lite.generator.server.springboot.springcloud.common.domain.SpringCloudModuleDependencies.springCloudDependenciesManagement;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.common.domain.Base64Utils;
-import tech.jhipster.lite.docker.domain.DockerImages;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.generator.base64.domain.Base64Utils;
 import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterSource;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javaproperties.JHipsterModuleSpringProperties.JHipsterModuleSpringPropertiesBuilder;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class SpringCloudConfigModuleFactory {
 
+  private static final String JWT_BASE_64_SECRET = "jwtBase64Secret";
+
   private static final JHipsterSource SOURCE = from("server/springboot/springcloud/configclient");
 
-  private static final PropertyValue FALSE_VALUE = propertyValue("false");
+  private static final PropertyValue FALSE_VALUE = propertyValue(false);
 
   private final DockerImages dockerImages;
 
@@ -37,7 +40,7 @@ public class SpringCloudConfigModuleFactory {
     //@formatter:off
     return builder
       .springMainBootstrapProperties()
-        .set(propertyKey("spring.cloud.config.fail-fast"), propertyValue("true"))
+        .set(propertyKey("spring.cloud.config.fail-fast"), propertyValue(true))
         .and()
       .springMainBootstrapProperties(springProfile("local"))
         .set(propertyKey("spring.cloud.config.fail-fast"), FALSE_VALUE)
@@ -51,11 +54,13 @@ public class SpringCloudConfigModuleFactory {
   }
 
   private JHipsterModuleBuilder initBuilder(JHipsterModuleProperties properties) {
+    String jwtBase64secret = properties.getOrDefaultString(JWT_BASE_64_SECRET, Base64Utils.getBase64Secret());
+
     //@formatter:off
     return moduleBuilder(properties)
       .context()
         .put("jhipsterRegistryDockerImage", dockerImages.get("jhipster/jhipster-registry").fullName())
-        .put("base64JwtSecret", Base64Utils.getBase64Secret())
+        .put("base64JwtSecret", jwtBase64secret)
         .and()
       .javaDependencies()
         .addDependencyManagement(springCloudDependenciesManagement())
@@ -79,9 +84,9 @@ public class SpringCloudConfigModuleFactory {
       .set(propertyKey("spring.cloud.compatibility-verifier.enabled"), FALSE_VALUE)
       .set(propertyKey("spring.cloud.config.label"), propertyValue("main"))
       .set(propertyKey("spring.cloud.config.name"), baseNameValue)
-      .set(propertyKey("spring.cloud.config.retry.initial-interval"), propertyValue("1000"))
-      .set(propertyKey("spring.cloud.config.retry.max-attempts"), propertyValue("100"))
-      .set(propertyKey("spring.cloud.config.retry.max-interval"), propertyValue("2000"))
+      .set(propertyKey("spring.cloud.config.retry.initial-interval"), propertyValue(1000))
+      .set(propertyKey("spring.cloud.config.retry.max-attempts"), propertyValue(100))
+      .set(propertyKey("spring.cloud.config.retry.max-interval"), propertyValue(2000))
       .set(propertyKey("spring.cloud.config.uri"), propertyValue("http://admin:${jhipster.registry.password}@localhost:8761/config"));
   }
 }

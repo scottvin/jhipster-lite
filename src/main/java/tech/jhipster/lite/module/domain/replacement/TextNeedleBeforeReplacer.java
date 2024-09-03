@@ -3,9 +3,8 @@ package tech.jhipster.lite.module.domain.replacement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record TextNeedleBeforeReplacer(ReplacementCondition condition, String text) implements ElementReplacer {
   public TextNeedleBeforeReplacer {
@@ -30,7 +29,7 @@ public record TextNeedleBeforeReplacer(ReplacementCondition condition, String te
       }
 
       String replacementBlock = replacement + JHipsterModule.LINE_BREAK;
-      return buildBlocks(content, needlesLinesIndexes).stream().collect(Collectors.joining(replacementBlock));
+      return String.join(replacementBlock, buildBlocks(content, needlesLinesIndexes));
     };
   }
 
@@ -64,7 +63,7 @@ public record TextNeedleBeforeReplacer(ReplacementCondition condition, String te
       blocks.add(content.substring(blockStart(needlesLinesIndexes, index), needlesLinesIndexes.get(index)));
     }
 
-    blocks.add(content.substring(needlesLinesIndexes.get(needlesLinesIndexes.size() - 1), content.length()));
+    blocks.add(content.substring(needlesLinesIndexes.getLast()));
 
     return blocks;
   }

@@ -1,51 +1,50 @@
+// jhipster-needle-gradle-imports
+
 plugins {
   java
-  jacoco
+  // jhipster-needle-gradle-plugins
 }
+
+// jhipster-needle-gradle-properties
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(17))
-    vendor.set(JvmVendorSpec.ADOPTIUM)
+    languageVersion = JavaLanguageVersion.of({{javaVersion}})
   }
 }
-
-jacoco {
-  toolVersion = "0.8.8"
-}
+// jhipster-needle-gradle-plugins-configurations
 
 repositories {
   mavenCentral()
-  // jhipster-needle-gradle-repository
+  // jhipster-needle-gradle-repositories
 }
 
 group = "{{packageName}}"
 version = "0.0.1-SNAPSHOT"
 
-ext {
-  set("junit-jupiter.version", "5.8.2")
-  set("assertj.version", "3.22.0")
-  set("mockito.version", "4.2.0")
-  // jhipster-needle-gradle-property
-}
+val profiles = (project.findProperty("profiles") as String? ?: "")
+  .split(",")
+  .map { it.trim() }
+  .filter { it.isNotEmpty() }
+// jhipster-needle-profile-activation
 
 dependencies {
-  // jhipster-needle-gradle-add-dependency
-  testImplementation("org.junit.jupiter:junit-jupiter-engine:${property("junit-jupiter.version")}")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:${property("junit-jupiter.version")}")
-  testImplementation("org.assertj:assertj-core:${property("assertj.version")}")
-  testImplementation("org.mockito:mockito-junit-jupiter:${property("mockito.version")}")
-  testImplementation("org.mockito:mockito-inline:${property("mockito.version")}")
-  // jhipster-needle-gradle-add-dependency-test
+  // jhipster-needle-gradle-implementation-dependencies
+  // jhipster-needle-gradle-compile-dependencies
+  // jhipster-needle-gradle-runtime-dependencies
+  // jhipster-needle-gradle-test-dependencies
 }
+
+// jhipster-needle-gradle-free-configuration-blocks
 
 tasks.test {
   filter {
-    includeTestsMatching("*Test.*")
-    excludeTestsMatching("*IntTest.*")
-    excludeTestsMatching("*IT.*")
+    includeTestsMatching("**Test*")
+    excludeTestsMatching("**IT*")
+    excludeTestsMatching("**CucumberTest*")
   }
   useJUnitPlatform()
+  // jhipster-needle-gradle-tasks-test
 }
 
 val integrationTest = task<Test>("integrationTest") {
@@ -53,9 +52,8 @@ val integrationTest = task<Test>("integrationTest") {
   group = "verification"
   shouldRunAfter("test")
   filter {
-    includeTestsMatching("*IntTest.*")
-    includeTestsMatching("*IT.*")
-    excludeTestsMatching("*Test.*")
+    includeTestsMatching("**IT*")
+    includeTestsMatching("**CucumberTest*")
   }
   useJUnitPlatform()
 }

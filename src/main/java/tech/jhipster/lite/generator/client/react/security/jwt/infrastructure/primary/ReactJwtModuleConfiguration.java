@@ -1,23 +1,24 @@
 package tech.jhipster.lite.generator.client.react.security.jwt.infrastructure.primary;
 
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tech.jhipster.lite.generator.client.react.security.jwt.application.ReactJwtApplicationService;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleApiDoc;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleResource;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 
 @Configuration
 class ReactJwtModuleConfiguration {
 
   @Bean
   JHipsterModuleResource reactJwtModule(ReactJwtApplicationService reactJwt) {
-    return JHipsterModuleResource
-      .builder()
-      .legacyUrl("/api/clients/react/jwt")
-      .slug("react-jwt")
+    return JHipsterModuleResource.builder()
+      .slug(REACT_JWT)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addIndentation().build())
-      .apiDoc(new JHipsterModuleApiDoc("React", "Add JWT Login React"))
+      .apiDoc("Frontend - React", "Add JWT Login React")
+      .organization(JHipsterModuleOrganization.builder().addDependency(REACT_CORE).build())
       .tags("client", "react", "jwt")
       .factory(reactJwt::buildModule);
   }

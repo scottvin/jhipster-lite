@@ -1,0 +1,15 @@
+{
+  "extends": "@tsconfig/vite-react/tsconfig.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "composite": false,
+    "baseUrl": ".",
+    "types": ["vitest/globals"],
+    "paths": {
+      "@/*": ["src/main/webapp/app/*"],
+      "@assets/*": ["src/main/webapp/assets/*"]
+    }
+  },
+  "include": ["src/main/webapp/**/*", "src/test/webapp/unit/**/*"]
+}

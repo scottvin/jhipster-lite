@@ -5,34 +5,46 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.javabuild.ArtifactId;
+import tech.jhipster.lite.module.domain.javabuild.DependencySlug;
 import tech.jhipster.lite.module.domain.javabuild.GroupId;
 import tech.jhipster.lite.module.domain.javabuild.VersionSlug;
+import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaDependency;
+import tech.jhipster.lite.module.domain.javabuild.command.AddJavaDependencyManagement;
 import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommand;
 import tech.jhipster.lite.module.domain.javabuild.command.SetVersion;
+import tech.jhipster.lite.module.domain.javabuildprofile.BuildProfileId;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
-public class JavaDependency {
+public final class JavaDependency {
 
   private final DependencyId id;
+  private final Optional<DependencySlug> dependencySlug;
   private final Optional<VersionSlug> versionSlug;
   private final JavaDependencyScope scope;
   private final boolean optional;
-  private final Optional<JavaDependencyType> type;
   private final Collection<DependencyId> exclusions;
 
   private JavaDependency(JavaDependencyBuilder builder) {
-    id = new DependencyId(builder.groupId, builder.artifactId);
+    id = buildId(builder);
     versionSlug = Optional.ofNullable(builder.versionSlug);
+    dependencySlug = Optional.ofNullable(builder.dependencySlug);
     scope = JavaDependencyScope.from(builder.scope);
     optional = builder.optional;
-    type = Optional.ofNullable(builder.type);
     exclusions = JHipsterCollections.immutable(builder.exclusions);
+  }
+
+  private DependencyId buildId(JavaDependencyBuilder builder) {
+    return DependencyId.builder()
+      .groupId(builder.groupId)
+      .artifactId(builder.artifactId)
+      .classifier(builder.classifier)
+      .type(builder.type)
+      .build();
   }
 
   public static JavaDependencyGroupIdBuilder builder() {
@@ -40,26 +52,45 @@ public class JavaDependency {
   }
 
   Collection<JavaBuildCommand> versionCommands(
-    CurrentJavaDependenciesVersions currentVersions,
-    ProjectJavaDependencies projectDependencies
+    JavaDependenciesVersions currentVersions,
+    ProjectJavaDependencies projectDependencies,
+    Collection<JavaBuildCommand> dependencyCommands
   ) {
-    return version().flatMap(toVersion(currentVersions, projectDependencies)).map(toSetVersionCommand()).map(List::of).orElse(List.of());
+    return version()
+      .flatMap(toVersion(currentVersions, projectDependencies, dependencyCommands))
+      .map(toSetVersionCommand())
+      .map(List::of)
+      .orElse(List.of());
   }
 
-  private Function<VersionSlug, Optional<JavaDependencyVersion>> toVersion(
-    CurrentJavaDependenciesVersions currentVersions,
+  public static Function<VersionSlug, Optional<JavaDependencyVersion>> toVersion(
+    JavaDependenciesVersions currentVersions,
     ProjectJavaDependencies projectDependencies
+  ) {
+    return toVersion(currentVersions, projectDependencies, List.of());
+  }
+
+  private static Function<VersionSlug, Optional<JavaDependencyVersion>> toVersion(
+    JavaDependenciesVersions currentVersions,
+    ProjectJavaDependencies projectDependencies,
+    Collection<JavaBuildCommand> dependencyCommands
   ) {
     return slug -> {
       JavaDependencyVersion currentVersion = currentVersions.get(slug);
 
-      return projectDependencies.version(slug).map(toVersionToUse(currentVersion)).orElseGet(() -> Optional.of(currentVersion));
+      return projectDependencies
+        .version(slug)
+        .map(toVersionToUse(currentVersion, dependencyCommands))
+        .orElseGet(() -> Optional.of(currentVersion));
     };
   }
 
-  private Function<JavaDependencyVersion, Optional<JavaDependencyVersion>> toVersionToUse(JavaDependencyVersion currentVersion) {
+  private static Function<JavaDependencyVersion, Optional<JavaDependencyVersion>> toVersionToUse(
+    JavaDependencyVersion currentVersion,
+    Collection<JavaBuildCommand> dependencyCommands
+  ) {
     return version -> {
-      if (version.equals(currentVersion)) {
+      if (version.equals(currentVersion) && hasNoDependencyToAdd(dependencyCommands)) {
         return Optional.empty();
       }
 
@@ -67,80 +98,59 @@ public class JavaDependency {
     };
   }
 
+  private static boolean hasNoDependencyToAdd(Collection<JavaBuildCommand> dependencyCommands) {
+    return dependencyCommands
+      .stream()
+      .noneMatch(
+        dependencyCommand ->
+          dependencyCommand instanceof AddDirectJavaDependency || dependencyCommand instanceof AddJavaDependencyManagement
+      );
+  }
+
   private Function<JavaDependencyVersion, JavaBuildCommand> toSetVersionCommand() {
     return SetVersion::new;
   }
 
-  Collection<JavaBuildCommand> dependencyCommands(DependenciesCommandsFactory commands, Optional<JavaDependency> projectDependency) {
-    return projectDependency.map(toDependenciesCommands(commands)).orElseGet(() -> List.of(commands.addDependency(this)));
+  Collection<JavaBuildCommand> dependencyCommands(
+    DependenciesCommandsFactory commands,
+    Optional<JavaDependency> projectDependency,
+    Optional<BuildProfileId> buildProfile
+  ) {
+    return projectDependency
+      .map(toDependenciesCommands(commands, buildProfile))
+      .orElseGet(() -> List.of(commands.addDependency(this, buildProfile)));
   }
 
-  private Function<JavaDependency, Collection<JavaBuildCommand>> toDependenciesCommands(DependenciesCommandsFactory commands) {
+  private Function<JavaDependency, Collection<JavaBuildCommand>> toDependenciesCommands(
+    DependenciesCommandsFactory commands,
+    Optional<BuildProfileId> buildProfile
+  ) {
     return projectDependency -> {
-      Collection<JavaDependency> resultingDependencies = merge(projectDependency);
+      JavaDependency resultingDependency = merge(projectDependency);
 
-      if (resultingDependencies.size() == 1 && resultingDependencies.contains(projectDependency)) {
+      if (resultingDependency.equals(projectDependency)) {
         return List.of();
       }
 
-      return Stream
-        .concat(Stream.of(commands.removeDependency(id())), resultingDependencies.stream().map(commands::addDependency))
-        .toList();
+      return List.of(commands.removeDependency(id(), buildProfile), commands.addDependency(resultingDependency, buildProfile));
     };
   }
 
-  public DependencyId id() {
-    return id;
-  }
-
-  public Optional<VersionSlug> version() {
-    return versionSlug;
-  }
-
-  public boolean optional() {
-    return optional;
-  }
-
-  public JavaDependencyScope scope() {
-    return scope;
-  }
-
-  public Optional<JavaDependencyType> type() {
-    return type;
-  }
-
-  public Collection<DependencyId> exclusions() {
-    return exclusions;
-  }
-
-  private Collection<JavaDependency> merge(JavaDependency other) {
-    JavaDependency mergedWithCurrentType = merge(other, type);
-
-    if (!type.equals(other.type)) {
-      return List.of(mergedWithCurrentType, merge(other, other.type));
-    }
-
-    return List.of(mergedWithCurrentType);
-  }
-
-  private JavaDependency merge(JavaDependency other, Optional<JavaDependencyType> resultingType) {
-    return JavaDependency
-      .builder()
+  private JavaDependency merge(JavaDependency other) {
+    return builder()
       .groupId(groupId())
       .artifactId(artifactId())
       .versionSlug(mergeVersionsSlugs(other))
+      .dependencySlug(mergeDependencySlugs(other))
+      .classifier(classifier().orElse(null))
       .scope(mergeScopes(other))
       .optional(mergeOptionalFlag(other))
-      .type(resultingType.orElse(null))
+      .type(type().orElse(null))
       .build();
   }
 
-  private GroupId groupId() {
-    return id.groupId();
-  }
-
-  private ArtifactId artifactId() {
-    return id.artifactId();
+  private DependencySlug mergeDependencySlugs(JavaDependency other) {
+    return dependencySlug.orElseGet(() -> other.dependencySlug.orElse(null));
   }
 
   private VersionSlug mergeVersionsSlugs(JavaDependency other) {
@@ -155,14 +165,54 @@ public class JavaDependency {
     return optional && other.optional;
   }
 
-  @Override
-  @Generated
-  public int hashCode() {
-    return new HashCodeBuilder().append(id).append(versionSlug).append(scope).append(optional).append(type).hashCode();
+  public DependencyId id() {
+    return id;
+  }
+
+  public Optional<VersionSlug> version() {
+    return versionSlug;
+  }
+
+  public Optional<DependencySlug> slug() {
+    return dependencySlug;
+  }
+
+  public Optional<JavaDependencyClassifier> classifier() {
+    return id.classifier();
+  }
+
+  public boolean optional() {
+    return optional;
+  }
+
+  public JavaDependencyScope scope() {
+    return scope;
+  }
+
+  public Optional<JavaDependencyType> type() {
+    return id.type();
+  }
+
+  public Collection<DependencyId> exclusions() {
+    return exclusions;
+  }
+
+  private GroupId groupId() {
+    return id.groupId();
+  }
+
+  private ArtifactId artifactId() {
+    return id.artifactId();
   }
 
   @Override
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
+  public int hashCode() {
+    return new HashCodeBuilder().append(id).append(versionSlug).append(scope).append(optional).hashCode();
+  }
+
+  @Override
+  @ExcludeFromGeneratedCodeCoverage
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
@@ -176,25 +226,25 @@ public class JavaDependency {
 
     return new EqualsBuilder()
       .append(id, other.id)
+      .append(dependencySlug, other.dependencySlug)
       .append(versionSlug, other.versionSlug)
       .append(scope, other.scope)
       .append(optional, other.optional)
-      .append(type, other.type)
       .isEquals();
   }
 
-  public static class JavaDependencyBuilder
+  private static final class JavaDependencyBuilder
     implements JavaDependencyGroupIdBuilder, JavaDependencyArtifactIdBuilder, JavaDependencyOptionalValueBuilder {
 
     private GroupId groupId;
     private ArtifactId artifactId;
+    private DependencySlug dependencySlug;
     private VersionSlug versionSlug;
+    private JavaDependencyClassifier classifier;
     private JavaDependencyScope scope;
     private boolean optional;
     private JavaDependencyType type;
     private final Collection<DependencyId> exclusions = new ArrayList<>();
-
-    private JavaDependencyBuilder() {}
 
     @Override
     public JavaDependencyArtifactIdBuilder groupId(GroupId groupId) {
@@ -213,6 +263,20 @@ public class JavaDependency {
     @Override
     public JavaDependencyOptionalValueBuilder versionSlug(VersionSlug versionSlug) {
       this.versionSlug = versionSlug;
+
+      return this;
+    }
+
+    @Override
+    public JavaDependencyOptionalValueBuilder dependencySlug(DependencySlug dependencySlug) {
+      this.dependencySlug = dependencySlug;
+
+      return this;
+    }
+
+    @Override
+    public JavaDependencyOptionalValueBuilder classifier(JavaDependencyClassifier classifier) {
+      this.classifier = classifier;
 
       return this;
     }
@@ -272,6 +336,10 @@ public class JavaDependency {
   public interface JavaDependencyOptionalValueBuilder {
     JavaDependencyOptionalValueBuilder versionSlug(VersionSlug versionSlug);
 
+    JavaDependencyOptionalValueBuilder dependencySlug(DependencySlug dependencySlug);
+
+    JavaDependencyOptionalValueBuilder classifier(JavaDependencyClassifier classifier);
+
     JavaDependencyOptionalValueBuilder scope(JavaDependencyScope scope);
 
     JavaDependencyOptionalValueBuilder optional(boolean optional);
@@ -282,8 +350,16 @@ public class JavaDependency {
 
     JavaDependency build();
 
+    default JavaDependencyOptionalValueBuilder dependencySlug(String dependencySlug) {
+      return dependencySlug(DependencySlug.of(dependencySlug).orElse(null));
+    }
+
     default JavaDependencyOptionalValueBuilder versionSlug(String versionSlug) {
       return versionSlug(VersionSlug.of(versionSlug).orElse(null));
+    }
+
+    default JavaDependencyOptionalValueBuilder classifier(String classifier) {
+      return classifier(JavaDependencyClassifier.of(classifier).orElse(null));
     }
 
     default JavaDependencyOptionalValueBuilder optional() {
@@ -291,7 +367,7 @@ public class JavaDependency {
     }
 
     default JavaDependencyOptionalValueBuilder addExclusion(GroupId groupId, ArtifactId artifactId) {
-      return addExclusion(new DependencyId(groupId, artifactId));
+      return addExclusion(DependencyId.of(groupId, artifactId));
     }
   }
 }

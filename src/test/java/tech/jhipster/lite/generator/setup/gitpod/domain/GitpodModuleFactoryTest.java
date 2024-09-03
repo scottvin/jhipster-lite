@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.setup.gitpod.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModule;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -20,6 +20,14 @@ class GitpodModuleFactoryTest {
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModule(module).createFiles(".gitpod.yml", ".gitpod.Dockerfile");
+    assertThatModule(module)
+      .hasFile(".gitpod.yml")
+      .containing(
+        """
+        port: 8080
+        """
+      )
+      .and()
+      .hasFiles(".gitpod.Dockerfile");
   }
 }

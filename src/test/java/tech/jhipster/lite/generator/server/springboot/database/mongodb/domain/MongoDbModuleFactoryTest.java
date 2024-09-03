@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.database.mongodb.domain;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -10,12 +10,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.docker.domain.DockerImage;
-import tech.jhipster.lite.docker.domain.DockerImages;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
+import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleFile;
 
 @UnitTest
 @ExtendWith(MockitoExtension.class)
@@ -29,89 +28,96 @@ class MongoDbModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    when(dockerImages.get("mongo")).thenReturn(new DockerImage("mongo", "1.1.1"));
+    when(dockerImages.get("mongo")).thenReturn(new DockerImageVersion("mongo", "1.1.1"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile(), lockbackFile(), testLockbackFile(), integrationTestAnnotation(), readmeFile())
-      .createFiles("documentation/mongo-db.md")
-      .createFile("README.md")
-      .containing("""
-            ```bash
-            docker-compose -f src/main/docker/mongodb.yml up -d
-            ```
-            """)
-      .and()
-      .createFile("pom.xml")
+    assertThatModuleWithFiles(module, pomFile(), logbackFile(), testLogbackFile(), readmeFile())
+      .hasFiles("documentation/mongo-db.md")
+      .hasFile("README.md")
       .containing(
         """
-                <dependency>
-                  <groupId>org.springframework.boot</groupId>
-                  <artifactId>spring-boot-starter-data-mongodb</artifactId>
-                </dependency>
-            """
-      )
-      .containing(
+        ```bash
+        docker compose -f src/main/docker/mongodb.yml up -d
+        ```
         """
-                <dependency>
-                  <groupId>org.mongodb</groupId>
-                  <artifactId>mongodb-driver-sync</artifactId>
-                </dependency>
-            """
-      )
-      .containing(
-        """
-                <dependency>
-                  <groupId>org.testcontainers</groupId>
-                  <artifactId>mongodb</artifactId>
-                  <version>${testcontainers.version}</version>
-                  <scope>test</scope>
-                </dependency>
-            """
       )
       .and()
-      .createFile("src/main/docker/mongodb.yml")
+      .hasFile("pom.xml")
+      .containing(
+        """
+            <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            </dependency>
+        """
+      )
+      .containing(
+        """
+            <dependency>
+              <groupId>org.testcontainers</groupId>
+              <artifactId>mongodb</artifactId>
+              <version>${testcontainers.version}</version>
+              <scope>test</scope>
+            </dependency>
+        """
+      )
+      .containing(
+        """
+            <dependency>
+              <groupId>org.reflections</groupId>
+              <artifactId>reflections</artifactId>
+              <version>${reflections.version}</version>
+            </dependency>
+        """
+      )
+      .and()
+      .hasFile("src/main/docker/mongodb.yml")
       .containing("mongo:1.1.1")
       .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/secondary/mongodb",
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/wire/mongodb/infrastructure/secondary",
         "MongodbDatabaseConfiguration.java",
         "JSR310DateConverters.java"
       )
-      .createFiles("src/test/java/com/jhipster/test/technical/infrastructure/secondary/mongodb/JSR310DateConvertersTest.java")
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test",
-        "MongodbTestContainerExtension.java",
-        "TestContainersSpringContextCustomizerFactory.java"
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/wire/mongodb/infrastructure/secondary/JSR310DateConvertersTest.java")
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/TestMongoDBManager.java")
+      .hasFile("src/test/resources/META-INF/spring.factories")
+      .containing("org.springframework.context.ApplicationListener=tech.jhipster.jhlitest")
+      .and()
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        spring:
+          data:
+            mongodb:
+              database: jhipster
+              uri: mongodb://localhost:27017/jhipster
+        """
       )
-      .createFile("src/test/resources/META-INF/spring.factories")
-      .containing("org.springframework.test.context.ContextCustomizerFactory=com.jhipster.test")
       .and()
-      .createFile("src/main/resources/config/application.properties")
-      .containing("spring.data.mongodb.database=com.jhipster.test")
-      .containing("spring.data.mongodb.uri=mongodb://localhost:27017")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        spring:
+          data:
+            mongodb:
+              uri: ${TEST_MONGODB_URI}
+        """
+      )
       .and()
-      .createFile("src/main/resources/logback-spring.xml")
+      .hasFile("src/main/resources/logback-spring.xml")
       .containing("<logger name=\"org.reflections\" level=\"WARN\" />")
       .containing("<logger name=\"org.mongodb.driver\" level=\"WARN\" />")
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("<logger name=\"org.reflections\" level=\"WARN\" />")
       .containing("<logger name=\"org.mongodb.driver\" level=\"WARN\" />")
       .containing("<logger name=\"com.github.dockerjava\" level=\"WARN\" />")
-      .containing("<logger name=\"org.testcontainers\" level=\"WARN\" />")
-      .and()
-      .createFile("src/test/java/com/jhipster/test/IntegrationTest.java")
-      .containing("import org.junit.jupiter.api.extension.ExtendWith;")
-      .containing("@ExtendWith(MongodbTestContainerExtension.class)");
-  }
-
-  private ModuleFile integrationTestAnnotation() {
-    return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/com/jhipster/test/IntegrationTest.java");
+      .containing("<logger name=\"org.testcontainers\" level=\"WARN\" />");
   }
 }

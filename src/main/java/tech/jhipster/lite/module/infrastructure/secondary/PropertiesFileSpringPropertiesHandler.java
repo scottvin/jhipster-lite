@@ -1,17 +1,16 @@
 package tech.jhipster.lite.module.infrastructure.secondary;
 
-import static tech.jhipster.lite.module.domain.JHipsterModule.*;
+import static tech.jhipster.lite.module.domain.JHipsterModule.LINE_BREAK;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyKey;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyValue;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 class PropertiesFileSpringPropertiesHandler {
 
@@ -33,14 +32,14 @@ class PropertiesFileSpringPropertiesHandler {
     updateProperties(key, value);
   }
 
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage(reason = "Hard to cover IOException")
   private void updateProperties(PropertyKey key, PropertyValue value) {
     try {
       String properties = buildProperties(key, value);
 
-      Files.write(file, properties.getBytes(StandardCharsets.UTF_8));
+      Files.writeString(file, properties);
     } catch (IOException e) {
-      throw new GeneratorException("Error updating properties: " + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error updating properties: " + e.getMessage(), e);
     }
   }
 
@@ -72,7 +71,7 @@ class PropertiesFileSpringPropertiesHandler {
   private String propertyLine(PropertyKey key, PropertyValue value) {
     return new StringBuilder()
       .append(propertyId(key))
-      .append(value.get().stream().collect(Collectors.joining(COLLECTION_SEPARATOR)))
+      .append(value.get().stream().map(Object::toString).collect(Collectors.joining(COLLECTION_SEPARATOR)))
       .toString();
   }
 

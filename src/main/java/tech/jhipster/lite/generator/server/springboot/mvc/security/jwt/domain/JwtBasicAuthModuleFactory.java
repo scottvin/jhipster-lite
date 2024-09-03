@@ -2,13 +2,12 @@ package tech.jhipster.lite.generator.server.springboot.mvc.security.jwt.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.module.domain.JHipsterDestination;
 import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
-import tech.jhipster.lite.module.domain.JHipsterSource;
+import tech.jhipster.lite.module.domain.file.JHipsterDestination;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javaproperties.JHipsterModuleSpringProperties.JHipsterModuleSpringPropertiesBuilder;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class JwtBasicAuthModuleFactory {
 
@@ -68,7 +67,6 @@ public class JwtBasicAuthModuleFactory {
     //@formatter:on
 
     appendProperties(builder.springMainProperties());
-    appendProperties(builder.springTestProperties());
 
     return builder.build();
   }
@@ -84,12 +82,12 @@ public class JwtBasicAuthModuleFactory {
         propertyKey("application.security.content-security-policy"),
         propertyValue(
           """
-            default-src 'self'; frame-src 'self' data:; \
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; \
-            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-            img-src 'self' data:; \
-            font-src 'self' data: https://fonts.gstatic.com;\
-            """
+          default-src 'self'; frame-src 'self' data:; \
+          script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; \
+          style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+          img-src 'self' data:; \
+          font-src 'self' data: https://fonts.gstatic.com;\
+          """
         )
       );
   }

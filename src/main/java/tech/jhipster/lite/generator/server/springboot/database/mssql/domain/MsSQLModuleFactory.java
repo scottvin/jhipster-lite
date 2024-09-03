@@ -1,16 +1,17 @@
 package tech.jhipster.lite.generator.server.springboot.database.mssql.domain;
 
-import static tech.jhipster.lite.generator.server.springboot.database.sqlcommon.domain.SQLCommonModuleBuilder.*;
+import static tech.jhipster.lite.generator.server.springboot.database.sqlcommon.domain.SQLCommonModuleBuilder.sqlCommonModuleBuilder;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.docker.domain.DockerImage;
-import tech.jhipster.lite.docker.domain.DockerImages;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.generator.project.domain.DatabaseType;
+import tech.jhipster.lite.generator.server.springboot.database.common.domain.DatabaseType;
 import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterSource;
 import tech.jhipster.lite.module.domain.LogLevel;
+import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
+import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class MsSQLModuleFactory {
 
@@ -25,7 +26,7 @@ public class MsSQLModuleFactory {
   public JHipsterModule buildModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
 
-    DockerImage dockerImage = dockerImages.get("mcr.microsoft.com/mssql/server");
+    DockerImageVersion dockerImage = dockerImages.get("mcr.microsoft.com/mssql/server");
     JHipsterSource source = from("server/springboot/database/" + DatabaseType.MSSQL.id());
 
     //@formatter:off
@@ -38,7 +39,7 @@ public class MsSQLModuleFactory {
         )
         .and()
       .javaDependencies()
-        .addDependency(groupId("com.microsoft.sqlserver"), artifactId("mssql-jdbc"))
+        .addDependency(javaDependency().groupId("com.microsoft.sqlserver").artifactId("mssql-jdbc").scope(JavaDependencyScope.RUNTIME).build())
         .and()
       .springMainProperties()
         .set(
@@ -51,8 +52,8 @@ public class MsSQLModuleFactory {
         .set(propertyKey("spring.jpa.hibernate.ddl-auto"), propertyValue("update"))
         .set(propertyKey("spring.jpa.properties.hibernate.criteria.literal_handling_mode"), propertyValue("BIND"))
         .set(propertyKey("spring.jpa.properties.hibernate.dialect"), propertyValue("org.hibernate.dialect.SQLServer2012Dialect"))
-        .set(propertyKey("spring.jpa.properties.hibernate.format_sql"), propertyValue("true"))
-        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.fetch_size"), propertyValue("150"))
+        .set(propertyKey("spring.jpa.properties.hibernate.format_sql"), propertyValue(true))
+        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.fetch_size"), propertyValue(150))
         .and()
       .springTestProperties()
         .set(
@@ -65,7 +66,7 @@ public class MsSQLModuleFactory {
         .set(propertyKey("spring.datasource.password"), propertyValue("yourStrong(!)Password"))
         .and()
       .mandatoryReplacements()
-        .in("src/test/java/" + properties.basePackage().path() + "/IntegrationTest.java")
+        .in(path("src/test/java").append(properties.basePackage().path()).append("IntegrationTest.java"))
           .add(
             lineBeforeText("import org.springframework.boot.test.context.SpringBootTest;"),
             "import org.junit.jupiter.api.extension.ExtendWith;"

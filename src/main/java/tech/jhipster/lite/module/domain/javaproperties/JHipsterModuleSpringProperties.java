@@ -1,17 +1,18 @@
 package tech.jhipster.lite.module.domain.javaproperties;
 
-import java.util.HashMap;
-import java.util.Map;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
+import java.util.*;
 import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleSpringProperties {
+public final class JHipsterModuleSpringProperties {
 
   private final Map<PropertyKey, PropertyValue> properties;
+  private final Map<PropertyKey, Comment> comments;
 
   private JHipsterModuleSpringProperties(JHipsterModuleSpringPropertiesBuilder builder) {
     properties = JHipsterCollections.immutable(builder.properties);
+    comments = JHipsterCollections.immutable(builder.comments);
   }
 
   public static JHipsterModuleSpringPropertiesBuilder builder(JHipsterModuleBuilder module) {
@@ -22,10 +23,15 @@ public class JHipsterModuleSpringProperties {
     return properties;
   }
 
-  public static class JHipsterModuleSpringPropertiesBuilder {
+  public Map<PropertyKey, Comment> comments() {
+    return comments;
+  }
+
+  public static final class JHipsterModuleSpringPropertiesBuilder {
 
     private final JHipsterModuleBuilder module;
-    private final Map<PropertyKey, PropertyValue> properties = new HashMap<>();
+    private final Map<PropertyKey, PropertyValue> properties = new TreeMap<>();
+    private final Map<PropertyKey, Comment> comments = new HashMap<>();
 
     private JHipsterModuleSpringPropertiesBuilder(JHipsterModuleBuilder module) {
       Assert.notNull("module", module);
@@ -37,7 +43,16 @@ public class JHipsterModuleSpringProperties {
       Assert.notNull("key", key);
       Assert.notNull("value", value);
 
-      properties.put(key, value);
+      this.properties.put(key, value);
+
+      return this;
+    }
+
+    public JHipsterModuleSpringPropertiesBuilder comment(PropertyKey key, Comment value) {
+      Assert.notNull("key", key);
+      Assert.notNull("value", value);
+
+      this.comments.put(key, value);
 
       return this;
     }

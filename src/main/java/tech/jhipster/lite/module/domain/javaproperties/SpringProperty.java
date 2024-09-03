@@ -1,8 +1,8 @@
 package tech.jhipster.lite.module.domain.javaproperties;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class SpringProperty {
+public final class SpringProperty implements SpringPropertyTypeFileName {
 
   private final SpringPropertyType type;
   private final PropertyKey key;
@@ -27,10 +27,11 @@ public class SpringProperty {
     return profile;
   }
 
-  public static SpringPropertyBuilder builder(SpringPropertyType type) {
+  public static SpringPropertyKeyBuilder builder(SpringPropertyType type) {
     return new SpringPropertyBuilder(type);
   }
 
+  @Override
   public SpringPropertyType type() {
     return type;
   }
@@ -43,6 +44,7 @@ public class SpringProperty {
     return value;
   }
 
+  @Override
   public String filename() {
     if (profile.isDefault()) {
       return type.filePrefix();
@@ -51,7 +53,8 @@ public class SpringProperty {
     return type.filePrefix() + "-" + profile.get();
   }
 
-  public static class SpringPropertyBuilder implements SpringPropertyKeyBuilder, SpringPropertyValueBuilder, SpringPropertyProfileBuilder {
+  private static final class SpringPropertyBuilder
+    implements SpringPropertyKeyBuilder, SpringPropertyValueBuilder, SpringPropertyProfileBuilder {
 
     private final SpringPropertyType type;
     private PropertyKey key;

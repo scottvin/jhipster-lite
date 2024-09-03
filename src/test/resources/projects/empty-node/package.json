@@ -6,8 +6,5 @@
   "license": "UNLICENSED",
   "engines": {
     "node": ">=16.13.0"
-  },
-  "cacheDirectories": [
-    "node_modules"
-  ]
+  }
 }

@@ -1,23 +1,25 @@
 package tech.jhipster.lite.generator.server.springboot.springcloud.consul.infrastructure.primary;
 
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tech.jhipster.lite.generator.server.springboot.springcloud.consul.application.ConsulApplicationService;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleApiDoc;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleResource;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 
 @Configuration
 class ConsulModuleConfiguration {
 
   @Bean
   JHipsterModuleResource consulModule(ConsulApplicationService consulApplicationService) {
-    return JHipsterModuleResource
-      .builder()
-      .legacyUrl("/api/servers/spring-boot/distributed-systems/spring-cloud/consul")
-      .slug("consul")
+    return JHipsterModuleResource.builder()
+      .slug(CONSUL)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addProjectBaseName().build())
-      .apiDoc(new JHipsterModuleApiDoc("Spring Boot - Spring Cloud", "Add Spring Cloud Consul config and discovery"))
+      .apiDoc("Spring Boot - Spring Cloud", "Add Spring Cloud Consul config and discovery")
+      .organization(JHipsterModuleOrganization.builder().feature(SERVICE_DISCOVERY).addDependency(SPRING_BOOT_ACTUATOR).build())
       .tags("server", "spring", "spring-boot", "cloud")
       .factory(consulApplicationService::buildModule);
   }

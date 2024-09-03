@@ -1,34 +1,24 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 
-import { HealthComponent } from './health.component';
+import HealthComponent from './health.component';
 import { HealthService } from './health.service';
 import { Health } from './health.model';
-
-class MatDialogMock {
-  open() {
-    return {
-      afterClosed: () => of(true)
-    }
-  }
-}
 
 describe('HealthComponent', () => {
   let comp: HealthComponent;
   let fixture: ComponentFixture<HealthComponent>;
   let service: HealthService;
-  let dialog: MatDialog;
+  let loader: HarnessLoader;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      declarations: [HealthComponent],
-      providers: [
-        { provide: MatDialog, useClass: MatDialogMock },
-        { provide: MAT_DIALOG_DATA, useValue: MatDialogMock }
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     })
       .overrideTemplate(HealthComponent, '')
       .compileComponents();
@@ -38,63 +28,60 @@ describe('HealthComponent', () => {
     fixture = TestBed.createComponent(HealthComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(HealthService);
-    dialog = TestBed.inject(MatDialog);
+    loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   });
 
   describe('refresh', () => {
     it('should call refresh on init', () => {
-      // GIVEN
       const health: Health = { status: 'UP', components: { mail: { status: 'UP', details: { mailDetail: 'mail' } } } };
       jest.spyOn(service, 'checkHealth').mockReturnValue(of(health));
 
-      // WHEN
       comp.ngOnInit();
 
-      // THEN
       expect(service.checkHealth).toHaveBeenCalled();
-      expect(service.checkHealth().subscribe({
-        next: health => expect(comp.datasource).toEqual([{"details": {"mailDetail": "mail"}, "key": "mail", "status": "UP"}]),
-      }));
+      expect(
+        service.checkHealth().subscribe({
+          next: () => expect(comp.datasource).toEqual([{ details: { mailDetail: 'mail' }, key: 'mail', status: 'UP' }]),
+        }),
+      );
     });
 
-    it('should call checkHealth on refresh', (done) => {
-      // GIVEN
+    it('should call checkHealth on refresh', done => {
       const health: Health = { status: 'UP', components: { mail: { status: 'UP', details: { mailDetail: 'mail' } } } };
       jest.spyOn(service, 'checkHealth').mockImplementation(() => of(health));
 
-      // WHEN
       comp.refresh();
       done();
 
-      // THEN
       expect(service.checkHealth).toHaveBeenCalled();
     });
   });
 
   describe('showHealth', () => {
-    it('should open dialog', () => {
-      // GIVEN
+    it('should open dialog', async () => {
       const health: Health = {
         status: 'UP',
-        components: null
-      }
-      jest.spyOn(dialog, 'open');
+        components: null,
+      };
 
-      // WHEN
       comp.showHealth(health);
 
-      // THEN
-      expect(dialog.open).toHaveBeenCalled();
+      const dialogs = await loader.getAllHarnesses(MatDialogHarness);
+      expect(dialogs.length).toBe(1);
     });
   });
 
   describe('getBadgeClass', () => {
-    it('should get badge class', () => {
+    it('should get success badge class', () => {
       const upBadgeClass = comp.getBadgeClass('UP');
-      const downBadgeClass = comp.getBadgeClass('DOWN');
+
       expect(upBadgeClass).toEqual('bg-success');
+    });
+
+    it('should get danger badge class', () => {
+      const downBadgeClass = comp.getBadgeClass('DOWN');
+
       expect(downBadgeClass).toEqual('bg-danger');
     });
   });
-
 });

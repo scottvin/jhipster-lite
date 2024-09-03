@@ -1,6 +1,6 @@
 package tech.jhipster.lite.module.domain.properties;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record JHipsterPropertyKey(String key) {
   public JHipsterPropertyKey {
@@ -8,6 +8,11 @@ public record JHipsterPropertyKey(String key) {
   }
 
   public String get() {
+    return key();
+  }
+
+  @Override
+  public String toString() {
     return key();
   }
 }

@@ -1,56 +1,86 @@
 package tech.jhipster.lite.module.domain;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.module.domain.file.JHipsterFilesToDelete;
+import tech.jhipster.lite.module.domain.file.JHipsterFilesToMove;
+import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFiles;
+import tech.jhipster.lite.module.domain.gitignore.JHipsterModuleGitIgnore;
 import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommands;
+import tech.jhipster.lite.module.domain.javaproperties.SpringComments;
+import tech.jhipster.lite.module.domain.javaproperties.SpringFactories;
 import tech.jhipster.lite.module.domain.javaproperties.SpringProperties;
 import tech.jhipster.lite.module.domain.packagejson.JHipsterModulePackageJson;
 import tech.jhipster.lite.module.domain.postaction.JHipsterModulePostActions;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
-import tech.jhipster.lite.module.domain.replacement.JHipsterModuleMandatoryReplacements;
-import tech.jhipster.lite.module.domain.replacement.JHipsterModuleOptionalReplacements;
+import tech.jhipster.lite.module.domain.replacement.ContentReplacers;
+import tech.jhipster.lite.module.domain.startupcommand.JHipsterStartupCommands;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
-public class JHipsterModuleChanges {
+@SuppressWarnings("java:S6539")
+public final class JHipsterModuleChanges {
 
+  private final JHipsterModuleContext context;
   private final JHipsterProjectFolder projectFolder;
   private final Indentation indentation;
-  private final TemplatedFiles files;
-  private final JHipsterModuleMandatoryReplacements mandatoryReplacements;
-  private final JHipsterModuleOptionalReplacements optionalReplacements;
+  private final JHipsterTemplatedFiles filesToAdd;
+  private final JHipsterFilesToMove filesToMove;
+  private final JHipsterFilesToDelete filesToDelete;
+  private final ContentReplacers replacers;
+  private final JHipsterStartupCommands startupCommands;
   private final JavaBuildCommands javaBuildCommands;
   private final JHipsterModulePackageJson packageJson;
   private final JHipsterModulePreActions preActions;
   private final JHipsterModulePostActions postActions;
   private final SpringProperties springProperties;
+  private final SpringComments springComments;
+  private final SpringProperties springYamlProperties;
+  private final SpringComments springYamlComments;
+  private final SpringFactories springFactories;
+  private final JHipsterModuleGitIgnore gitIgnore;
 
   private JHipsterModuleChanges(JHipsterModuleChangesBuilder builder) {
     assertMandatoryFields(builder);
 
+    context = builder.context;
     projectFolder = builder.projectFolder;
     indentation = builder.indentation;
-    files = builder.files;
-    mandatoryReplacements = builder.mandatoryReplacements;
-    optionalReplacements = builder.optionalReplacements;
+    filesToAdd = builder.filesToAdd;
+    filesToMove = builder.filesToMove;
+    filesToDelete = builder.filesToDelete;
+    replacers = builder.replacers;
+    startupCommands = builder.startupCommands;
     javaBuildCommands = builder.javaBuildCommands;
     packageJson = builder.packageJson;
     preActions = builder.preActions;
     postActions = builder.postActions;
     springProperties = builder.springProperties;
+    springComments = builder.springComments;
+    springYamlProperties = builder.springYamlProperties;
+    springYamlComments = builder.springYamlComments;
+    springFactories = builder.springFactories;
+    gitIgnore = builder.gitIgnore;
   }
 
   private void assertMandatoryFields(JHipsterModuleChangesBuilder builder) {
+    Assert.notNull("context", builder.context);
     Assert.notNull("projectFolder", builder.projectFolder);
     Assert.notNull("indentation", builder.indentation);
-    Assert.notNull("files", builder.files);
-    Assert.notNull("mandatoryReplacements", builder.mandatoryReplacements);
-    Assert.notNull("optionalReplacements", builder.optionalReplacements);
+    Assert.notNull("filesToAdd", builder.filesToAdd);
+    Assert.notNull("filesToMove", builder.filesToMove);
+    Assert.notNull("filesToDelete", builder.filesToDelete);
+    Assert.notNull("replacers", builder.replacers);
     Assert.notNull("javaBuildCommands", builder.javaBuildCommands);
     Assert.notNull("preActions", builder.preActions);
     Assert.notNull("postActions", builder.postActions);
-    Assert.notNull("springProperties", builder.springProperties);
+    Assert.notNull("springFactories", builder.springFactories);
   }
 
-  public static JHipsterModuleChangesProjectFolderBuilder builder() {
+  public static JHipsterModuleChangesContextBuilder builder() {
     return new JHipsterModuleChangesBuilder();
+  }
+
+  public JHipsterModuleContext context() {
+    return context;
   }
 
   public JHipsterProjectFolder projectFolder() {
@@ -61,16 +91,24 @@ public class JHipsterModuleChanges {
     return indentation;
   }
 
-  public TemplatedFiles files() {
-    return files;
+  public JHipsterTemplatedFiles filesToAdd() {
+    return filesToAdd;
   }
 
-  public JHipsterModuleMandatoryReplacements mandatoryReplacements() {
-    return mandatoryReplacements;
+  public JHipsterFilesToMove filesToMove() {
+    return filesToMove;
   }
 
-  public JHipsterModuleOptionalReplacements optionalReplacements() {
-    return optionalReplacements;
+  public JHipsterFilesToDelete filesToDelete() {
+    return filesToDelete;
+  }
+
+  public ContentReplacers replacers() {
+    return replacers;
+  }
+
+  public JHipsterStartupCommands startupCommands() {
+    return startupCommands;
   }
 
   public JavaBuildCommands javaBuildCommands() {
@@ -81,6 +119,10 @@ public class JHipsterModuleChanges {
     return packageJson;
   }
 
+  public JHipsterModuleGitIgnore gitIgnore() {
+    return gitIgnore;
+  }
+
   public JHipsterModulePreActions preActions() {
     return preActions;
   }
@@ -89,35 +131,72 @@ public class JHipsterModuleChanges {
     return postActions;
   }
 
+  public SpringProperties springYamlProperties() {
+    return springYamlProperties;
+  }
+
+  @ExcludeFromGeneratedCodeCoverage(reason = "Handling YAML comments is not yet implemented")
+  public SpringComments springYamlComments() {
+    return springYamlComments;
+  }
+
   public SpringProperties springProperties() {
     return springProperties;
   }
 
-  public static class JHipsterModuleChangesBuilder
+  public SpringComments springComments() {
+    return springComments;
+  }
+
+  public SpringFactories springFactories() {
+    return springFactories;
+  }
+
+  private static final class JHipsterModuleChangesBuilder
     implements
+      JHipsterModuleChangesContextBuilder,
       JHipsterModuleChangesProjectFolderBuilder,
       JHipsterModuleChangesIndentationBuilder,
-      JHipsterModuleChangesFilesBuilder,
-      JHipsterModuleChangesMandatoryReplacementsBuilder,
-      JHipsterModuleChangesOptionalReplacementsBuilder,
+      JHipsterModuleChangesFilesToAddBuilder,
+      JHipsterModuleChangesFilesToMoveBuilder,
+      JHipsterModuleChangesFilesToDeleteBuilder,
+      JHipsterModuleChangesReplacersBuilder,
+      JHipsterModuleChangesStartupCommandsBuilder,
       JHipsterModuleChangesJavaBuildCommandsBuilder,
       JHipsterModuleChangesPackageJsonBuilder,
       JHipsterModuleChangesPreActionsBuilder,
       JHipsterModuleChangesPostActionsBuilder,
-      JHipsterModuleChangesSpringPropertiesBuilder {
+      JHipsterModuleChangesSpringPropertiesBuilder,
+      JHipsterModuleChangesSpringCommentsBuilder,
+      JHipsterModuleChangesSpringFactoriesBuilder,
+      JHipsterModuleChangesSpringYamlCommentsBuilder,
+      JHipsterModuleChangesGitIgnorePatternsBuilder {
 
+    private JHipsterModuleContext context;
     private JHipsterProjectFolder projectFolder;
-    private TemplatedFiles files;
-    private JHipsterModuleMandatoryReplacements mandatoryReplacements;
-    private JHipsterModuleOptionalReplacements optionalReplacements;
+    private JHipsterTemplatedFiles filesToAdd;
+    private JHipsterFilesToMove filesToMove;
+    private JHipsterFilesToDelete filesToDelete;
+    private ContentReplacers replacers;
+    private JHipsterStartupCommands startupCommands;
     private JavaBuildCommands javaBuildCommands;
     private JHipsterModulePackageJson packageJson;
     private Indentation indentation;
     private JHipsterModulePreActions preActions;
     private JHipsterModulePostActions postActions;
-    private SpringProperties springProperties;
+    private SpringProperties springProperties = SpringProperties.EMPTY;
+    private SpringComments springComments = SpringComments.EMPTY;
+    private SpringProperties springYamlProperties = SpringProperties.EMPTY;
+    private SpringComments springYamlComments = SpringComments.EMPTY;
+    private SpringFactories springFactories;
+    private JHipsterModuleGitIgnore gitIgnore;
 
-    private JHipsterModuleChangesBuilder() {}
+    @Override
+    public JHipsterModuleChangesProjectFolderBuilder context(JHipsterModuleContext context) {
+      this.context = context;
+
+      return this;
+    }
 
     @Override
     public JHipsterModuleChangesIndentationBuilder projectFolder(JHipsterProjectFolder projectFolder) {
@@ -127,31 +206,43 @@ public class JHipsterModuleChanges {
     }
 
     @Override
-    public JHipsterModuleChangesFilesBuilder indentation(Indentation indentation) {
+    public JHipsterModuleChangesFilesToAddBuilder indentation(Indentation indentation) {
       this.indentation = indentation;
 
       return this;
     }
 
     @Override
-    public JHipsterModuleChangesMandatoryReplacementsBuilder files(TemplatedFiles files) {
-      this.files = files;
+    public JHipsterModuleChangesFilesToMoveBuilder filesToAdd(JHipsterTemplatedFiles filesToAdd) {
+      this.filesToAdd = filesToAdd;
 
       return this;
     }
 
     @Override
-    public JHipsterModuleChangesOptionalReplacementsBuilder mandatoryReplacements(
-      JHipsterModuleMandatoryReplacements mandatoryReplacements
-    ) {
-      this.mandatoryReplacements = mandatoryReplacements;
+    public JHipsterModuleChangesFilesToDeleteBuilder filesToMove(JHipsterFilesToMove filesToMove) {
+      this.filesToMove = filesToMove;
 
       return this;
     }
 
     @Override
-    public JHipsterModuleChangesJavaBuildCommandsBuilder optionalReplacements(JHipsterModuleOptionalReplacements optionalReplacements) {
-      this.optionalReplacements = optionalReplacements;
+    public JHipsterModuleChangesReplacersBuilder filesToDelete(JHipsterFilesToDelete filesToDelete) {
+      this.filesToDelete = filesToDelete;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesStartupCommandsBuilder replacers(ContentReplacers replacers) {
+      this.replacers = replacers;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesJavaBuildCommandsBuilder startupCommands(JHipsterStartupCommands startupCommands) {
+      this.startupCommands = startupCommands;
 
       return this;
     }
@@ -164,8 +255,15 @@ public class JHipsterModuleChanges {
     }
 
     @Override
-    public JHipsterModuleChangesPreActionsBuilder packageJson(JHipsterModulePackageJson packageJson) {
+    public JHipsterModuleChangesGitIgnorePatternsBuilder packageJson(JHipsterModulePackageJson packageJson) {
       this.packageJson = packageJson;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesPreActionsBuilder gitIgnore(JHipsterModuleGitIgnore gitIgnore) {
+      this.gitIgnore = gitIgnore;
 
       return this;
     }
@@ -178,18 +276,50 @@ public class JHipsterModuleChanges {
     }
 
     @Override
-    public JHipsterModuleChangesSpringPropertiesBuilder postActions(JHipsterModulePostActions postActions) {
+    public JHipsterModuleChangesSpringFactoriesBuilder postActions(JHipsterModulePostActions postActions) {
       this.postActions = postActions;
 
       return this;
     }
 
     @Override
-    public JHipsterModuleChanges springProperties(SpringProperties springProperties) {
+    public JHipsterModuleChangesSpringYamlCommentsBuilder springYamlProperties(SpringProperties springProperties) {
+      this.springYamlProperties = springProperties;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesSpringCommentsBuilder springProperties(SpringProperties springProperties) {
       this.springProperties = springProperties;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChanges springYamlComments(SpringComments springComments) {
+      this.springYamlComments = springComments;
 
       return new JHipsterModuleChanges(this);
     }
+
+    @Override
+    public JHipsterModuleChanges springComments(SpringComments springComments) {
+      this.springComments = springComments;
+
+      return new JHipsterModuleChanges(this);
+    }
+
+    @Override
+    public JHipsterModuleChangesSpringPropertiesBuilder springFactories(SpringFactories springFactories) {
+      this.springFactories = springFactories;
+
+      return this;
+    }
+  }
+
+  public interface JHipsterModuleChangesContextBuilder {
+    JHipsterModuleChangesProjectFolderBuilder context(JHipsterModuleContext context);
   }
 
   public interface JHipsterModuleChangesProjectFolderBuilder {
@@ -197,19 +327,27 @@ public class JHipsterModuleChanges {
   }
 
   public interface JHipsterModuleChangesIndentationBuilder {
-    JHipsterModuleChangesFilesBuilder indentation(Indentation indentation);
+    JHipsterModuleChangesFilesToAddBuilder indentation(Indentation indentation);
   }
 
-  public interface JHipsterModuleChangesFilesBuilder {
-    JHipsterModuleChangesMandatoryReplacementsBuilder files(TemplatedFiles files);
+  public interface JHipsterModuleChangesFilesToAddBuilder {
+    JHipsterModuleChangesFilesToMoveBuilder filesToAdd(JHipsterTemplatedFiles filesToAdd);
   }
 
-  public interface JHipsterModuleChangesMandatoryReplacementsBuilder {
-    JHipsterModuleChangesOptionalReplacementsBuilder mandatoryReplacements(JHipsterModuleMandatoryReplacements mandatoryReplacements);
+  public interface JHipsterModuleChangesFilesToMoveBuilder {
+    JHipsterModuleChangesFilesToDeleteBuilder filesToMove(JHipsterFilesToMove filesToMove);
   }
 
-  public interface JHipsterModuleChangesOptionalReplacementsBuilder {
-    JHipsterModuleChangesJavaBuildCommandsBuilder optionalReplacements(JHipsterModuleOptionalReplacements optionalReplacements);
+  public interface JHipsterModuleChangesFilesToDeleteBuilder {
+    JHipsterModuleChangesReplacersBuilder filesToDelete(JHipsterFilesToDelete filesToDelete);
+  }
+
+  public interface JHipsterModuleChangesReplacersBuilder {
+    JHipsterModuleChangesStartupCommandsBuilder replacers(ContentReplacers replacers);
+  }
+
+  public interface JHipsterModuleChangesStartupCommandsBuilder {
+    JHipsterModuleChangesJavaBuildCommandsBuilder startupCommands(JHipsterStartupCommands startupCommands);
   }
 
   public interface JHipsterModuleChangesJavaBuildCommandsBuilder {
@@ -217,7 +355,11 @@ public class JHipsterModuleChanges {
   }
 
   public interface JHipsterModuleChangesPackageJsonBuilder {
-    JHipsterModuleChangesPreActionsBuilder packageJson(JHipsterModulePackageJson packageJson);
+    JHipsterModuleChangesGitIgnorePatternsBuilder packageJson(JHipsterModulePackageJson packageJson);
+  }
+
+  public interface JHipsterModuleChangesGitIgnorePatternsBuilder {
+    JHipsterModuleChangesPreActionsBuilder gitIgnore(JHipsterModuleGitIgnore gitIgnore);
   }
 
   public interface JHipsterModuleChangesPreActionsBuilder {
@@ -225,10 +367,23 @@ public class JHipsterModuleChanges {
   }
 
   public interface JHipsterModuleChangesPostActionsBuilder {
-    JHipsterModuleChangesSpringPropertiesBuilder postActions(JHipsterModulePostActions postActions);
+    JHipsterModuleChangesSpringFactoriesBuilder postActions(JHipsterModulePostActions postActions);
+  }
+
+  public interface JHipsterModuleChangesSpringFactoriesBuilder {
+    JHipsterModuleChangesSpringPropertiesBuilder springFactories(SpringFactories springFactories);
   }
 
   public interface JHipsterModuleChangesSpringPropertiesBuilder {
-    JHipsterModuleChanges springProperties(SpringProperties springProperties);
+    JHipsterModuleChangesSpringYamlCommentsBuilder springYamlProperties(SpringProperties springProperties);
+    JHipsterModuleChangesSpringCommentsBuilder springProperties(SpringProperties springProperties);
+  }
+
+  public interface JHipsterModuleChangesSpringYamlCommentsBuilder {
+    JHipsterModuleChanges springYamlComments(SpringComments springComments);
+  }
+
+  public interface JHipsterModuleChangesSpringCommentsBuilder {
+    JHipsterModuleChanges springComments(SpringComments springComments);
   }
 }

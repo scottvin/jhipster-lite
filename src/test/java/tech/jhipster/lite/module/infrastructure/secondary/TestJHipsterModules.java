@@ -1,180 +1,101 @@
 package tech.jhipster.lite.module.infrastructure.secondary;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static tech.jhipster.lite.module.domain.resource.JHipsterModulesResourceFixture.defaultModuleResourceBuilder;
+import static tech.jhipster.lite.module.domain.resource.JHipsterModulesResourceFixture.emptyHiddenModules;
 
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.generator.buildtool.gradle.domain.GradleModuleFactory;
-import tech.jhipster.lite.generator.buildtool.maven.domain.MavenModuleFactory;
-import tech.jhipster.lite.generator.client.angular.core.domain.AngularModuleFactory;
-import tech.jhipster.lite.generator.client.react.core.domain.ReactCoreModulesFactory;
-import tech.jhipster.lite.generator.init.domain.InitModuleFactory;
-import tech.jhipster.lite.generator.project.domain.Project;
-import tech.jhipster.lite.generator.server.springboot.core.domain.SpringBootCoreModuleFactory;
-import tech.jhipster.lite.generator.server.springboot.mvc.web.domain.SpringBootMvcsModulesFactory;
-import tech.jhipster.lite.generator.server.springboot.mvc.zalandoproblem.domain.ZalandoProblemsModuleFactory;
-import tech.jhipster.lite.git.domain.GitRepository;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import tech.jhipster.lite.module.application.JHipsterModulesApplicationService;
-import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterModuleEvents;
-import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
-import tech.jhipster.lite.module.domain.JHipsterModuleToApply;
-import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.npm.infrastructure.secondary.FileSystemNpmVersions;
-import tech.jhipster.lite.projectfile.infrastructure.secondary.FileSystemProjectFilesReader;
+import tech.jhipster.lite.module.domain.*;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
+import tech.jhipster.lite.module.infrastructure.secondary.file.MustacheTemplateRenderer;
+import tech.jhipster.lite.module.infrastructure.secondary.git.GitTestUtil;
+import tech.jhipster.lite.module.infrastructure.secondary.javabuild.FileSystemProjectJavaBuildToolRepository;
+import tech.jhipster.lite.module.infrastructure.secondary.javadependency.*;
+import tech.jhipster.lite.module.infrastructure.secondary.npm.NpmVersionsFixture;
+import tech.jhipster.lite.module.infrastructure.secondary.npm.NpmVersionsReader;
+import tech.jhipster.lite.project.infrastructure.primary.JavaProjects;
 
 public final class TestJHipsterModules {
 
-  private static final InitModuleFactory initModules = new InitModuleFactory(mock(GitRepository.class));
-  private static final MavenModuleFactory mavenModules = new MavenModuleFactory();
-  private static final GradleModuleFactory gradleModules = new GradleModuleFactory();
-  private static final AngularModuleFactory angularModules = new AngularModuleFactory();
-  private static final ReactCoreModulesFactory reactModules = new ReactCoreModulesFactory();
-  private static final SpringBootCoreModuleFactory springBootModules = new SpringBootCoreModuleFactory();
-  private static final SpringBootMvcsModulesFactory mvcModules = new SpringBootMvcsModulesFactory();
-  private static final ZalandoProblemsModuleFactory zalandoProblemsModules = new ZalandoProblemsModuleFactory();
+  private static final Set<NpmVersionsReader> customNpmVersionsReaders = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private static final Set<JavaDependenciesReader> customJavaDependenciesReaders = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
   private TestJHipsterModules() {}
 
-  public static void applyInit(Project project) {
-    applyer().module(initModules.buildFullModule(projectProperties(project))).properties(projectProperties(project)).slug("init").apply();
+  public static void register(NpmVersionsReader npmVersionsReader) {
+    assertThat(npmVersionsReader).as("Npm versions reader to register can't be null").isNotNull();
+
+    customNpmVersionsReaders.add(npmVersionsReader);
   }
 
-  public static void applyMaven(Project project) {
-    applyer()
-      .module(mavenModules.buildModule(projectProperties(project)))
-      .properties(projectProperties(project))
-      .slug("maven-java")
-      .apply();
+  public static void register(JavaDependenciesReader javaDependenciesReader) {
+    assertThat(javaDependenciesReader).as("Java dependencies reader to register can't be null").isNotNull();
+
+    customJavaDependenciesReaders.add(javaDependenciesReader);
   }
 
-  public static void applyGradle(Project project) {
-    applyer().module(gradleModules.buildModule(projectProperties(project))).properties(projectProperties(project)).slug("gradle").apply();
+  public static void unregisterReaders() {
+    customNpmVersionsReaders.clear();
+    customJavaDependenciesReaders.clear();
   }
 
-  public static void applyAngular(Project project) {
-    applyer().module(angularModules.buildModule(projectProperties(project))).properties(projectProperties(project)).slug("angular").apply();
+  static void apply(JHipsterModule module) {
+    applyer(module).apply();
   }
 
-  public static void applyReact(Project project) {
-    applyer()
-      .module(reactModules.buildModuleWithStyle(projectProperties(project)))
-      .properties(projectProperties(project))
-      .slug("react")
-      .apply();
+  private static TestJHipsterModulesFinalApplyer applyer(JHipsterModule module) {
+    return new TestJHipsterModulesApplyer(module);
   }
 
-  public static void applySpringBootCore(Project project) {
-    JHipsterModuleProperties properties = projectProperties(project);
+  private static final class TestJHipsterModulesApplyer implements TestJHipsterModulesFinalApplyer {
 
-    applyer().module(springBootModules.buildModule(properties)).properties(properties).slug("springboot").apply();
-  }
+    private final JHipsterModule module;
+    private final JHipsterModuleSlug slug;
+    private final JHipsterModulesApplicationService modules;
 
-  public static void applyTomcat(Project project) {
-    applyer()
-      .module(mvcModules.buildTomcatModule(projectProperties(project)))
-      .properties(projectProperties(project))
-      .slug("springboot-tomcat")
-      .apply();
-  }
+    private TestJHipsterModulesApplyer(JHipsterModule module) {
+      this.module = module;
+      this.slug = new JHipsterModuleSlug("test-module");
+      this.modules = buildApplicationService(module);
+    }
 
-  public static void applyZalandoProblems(Project project) {
-    applyer()
-      .module(zalandoProblemsModules.buildModule(projectProperties(project)))
-      .properties(projectProperties(project))
-      .slug("zalando-problems")
-      .apply();
-  }
-
-  private static JHipsterModuleProperties projectProperties(Project project) {
-    return new JHipsterModuleProperties(project.getFolder(), false, project.getConfig());
-  }
-
-  public static void apply(JHipsterModule module) {
-    applyer().module(module).properties(JHipsterModuleProperties.defaultProperties(module.projectFolder())).slug("test-module").apply();
-  }
-
-  public static TestJHipsterModulesModuleApplyer applyer() {
-    return new TestJHipsterModulesApplyer();
-  }
-
-  public static class TestJHipsterModulesApplyer
-    implements
-      TestJHipsterModulesModuleApplyer,
-      TestJHipsterModulesPropertiesApplyer,
-      TestJHipsterModulesSlugApplyer,
-      TestJHipsterModulesFinalApplyer {
-
-    private static final JHipsterModulesApplicationService modules = buildApplicationService();
-
-    private JHipsterModule module;
-    private JHipsterModuleProperties properties;
-    private JHipsterModuleSlug slug;
-
-    private TestJHipsterModulesApplyer() {}
-
-    private static JHipsterModulesApplicationService buildApplicationService() {
-      FileSystemProjectFilesReader filesReader = new FileSystemProjectFilesReader();
+    private static JHipsterModulesApplicationService buildApplicationService(JHipsterModule module) {
+      ProjectFiles filesReader = new FileSystemProjectFiles();
+      MustacheTemplateRenderer templateRenderer = new MustacheTemplateRenderer();
+      FileSystemReplacer fileReplacer = new FileSystemReplacer(templateRenderer);
+      FileSystemJHipsterModuleFiles files = new FileSystemJHipsterModuleFiles(filesReader, templateRenderer);
 
       FileSystemJHipsterModulesRepository modulesRepository = new FileSystemJHipsterModulesRepository(
-        filesReader,
-        new FileSystemNpmVersions(filesReader)
+        mock(JavaProjects.class),
+        new JHipsterModulesResources(
+          List.of(defaultModuleResourceBuilder().slug("test-module").factory(properties -> module).build()),
+          emptyHiddenModules()
+        ),
+        files,
+        fileReplacer,
+        new FileSystemGitIgnoreHandler(fileReplacer),
+        new FileSystemJavaBuildCommandsHandler(new FileSystemProjectJavaBuildToolRepository(), files, fileReplacer),
+        new FileSystemPackageJsonHandler(NpmVersionsFixture.npmVersions(filesReader, customNpmVersionsReaders), templateRenderer),
+        new FileSystemStartupCommandsReadmeCommandsHandler(fileReplacer)
       );
 
       return new JHipsterModulesApplicationService(
-        modulesRepository,
         mock(JHipsterModuleEvents.class),
-        new FileSystemCurrentJavaDependenciesVersionsRepository(filesReader),
-        new FileSystemProjectJavaDependenciesRepository(),
-        mock(GitRepository.class)
+        modulesRepository,
+        JavaDependenciesFixture.javaVersionsRepository(filesReader, customJavaDependenciesReaders),
+        JavaDependenciesFixture.projectVersionsRepository(),
+        new FileSystemProjectJavaBuildToolRepository(),
+        GitTestUtil.gitRepository(),
+        new FileSystemGeneratedProjectRepository()
       );
-    }
-
-    @Override
-    public TestJHipsterModulesPropertiesApplyer module(JHipsterModule module) {
-      Assert.notNull("module", module);
-
-      this.module = module;
-
-      return this;
-    }
-
-    @Override
-    public TestJHipsterModulesSlugApplyer properties(JHipsterModuleProperties properties) {
-      Assert.notNull("properties", properties);
-
-      this.properties = properties;
-
-      return this;
-    }
-
-    @Override
-    public TestJHipsterModulesFinalApplyer slug(JHipsterModuleSlug slug) {
-      Assert.notNull("slug", slug);
-
-      this.slug = slug;
-
-      return this;
     }
 
     @Override
     public void apply() {
-      modules.apply(new JHipsterModuleToApply(properties, slug, module));
-    }
-  }
-
-  public interface TestJHipsterModulesModuleApplyer {
-    public TestJHipsterModulesPropertiesApplyer module(JHipsterModule module);
-  }
-
-  public interface TestJHipsterModulesPropertiesApplyer {
-    TestJHipsterModulesSlugApplyer properties(JHipsterModuleProperties properties);
-  }
-
-  public interface TestJHipsterModulesSlugApplyer {
-    TestJHipsterModulesFinalApplyer slug(JHipsterModuleSlug slug);
-
-    default TestJHipsterModulesFinalApplyer slug(String slug) {
-      return slug(new JHipsterModuleSlug(slug));
+      modules.apply(new JHipsterModuleToApply(slug, module.properties()));
     }
   }
 

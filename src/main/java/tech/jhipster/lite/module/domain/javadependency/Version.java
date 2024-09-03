@@ -1,6 +1,7 @@
 package tech.jhipster.lite.module.domain.javadependency;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 public record Version(String version) {
   public Version {
@@ -9,5 +10,11 @@ public record Version(String version) {
 
   public String get() {
     return version();
+  }
+
+  @Override
+  @ExcludeFromGeneratedCodeCoverage
+  public String toString() {
+    return get();
   }
 }

@@ -1,7 +1,6 @@
 package tech.jhipster.lite.module.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
-import static tech.jhipster.lite.module.domain.properties.JHipsterModulePropertyDefinition.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,21 +8,29 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.jhipster.lite.TestFileUtils;
+import tech.jhipster.lite.module.domain.buildproperties.BuildProperty;
+import tech.jhipster.lite.module.domain.buildproperties.PropertyKey;
+import tech.jhipster.lite.module.domain.buildproperties.PropertyValue;
+import tech.jhipster.lite.module.domain.gradleplugin.GradleMainBuildPlugin;
+import tech.jhipster.lite.module.domain.gradleplugin.GradlePlugin;
+import tech.jhipster.lite.module.domain.gradleplugin.GradleProfilePlugin;
 import tech.jhipster.lite.module.domain.javabuild.ArtifactId;
 import tech.jhipster.lite.module.domain.javabuild.GroupId;
+import tech.jhipster.lite.module.domain.javabuild.MavenBuildExtension;
 import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaDependency;
 import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommands;
 import tech.jhipster.lite.module.domain.javabuild.command.RemoveDirectJavaDependency;
 import tech.jhipster.lite.module.domain.javabuild.command.SetVersion;
-import tech.jhipster.lite.module.domain.javabuildplugin.JavaBuildPlugin;
+import tech.jhipster.lite.module.domain.javabuildprofile.BuildProfileId;
 import tech.jhipster.lite.module.domain.javadependency.*;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency.JavaDependencyOptionalValueBuilder;
 import tech.jhipster.lite.module.domain.javaproperties.SpringProperty;
 import tech.jhipster.lite.module.domain.javaproperties.SpringPropertyType;
+import tech.jhipster.lite.module.domain.mavenplugin.MavenPlugin;
 import tech.jhipster.lite.module.domain.packagejson.VersionSource;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.module.domain.properties.SpringConfigurationFormat;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public final class JHipsterModulesFixture {
 
@@ -31,64 +38,140 @@ public final class JHipsterModulesFixture {
 
   private JHipsterModulesFixture() {}
 
+  public static JHipsterModule moduleSecond(JHipsterModuleProperties properties) {
+    // @formatter:off
+   return moduleBuilder(properties)
+    .javaDependencies()
+      .addDependency(reflectionsDependency(JavaDependencyScope.COMPILE))
+      .addDependencyManagement(commonsLang3DependencyManagement(JavaDependencyScope.IMPORT))
+      .and()
+     .build();
+    // @formatter:on
+  }
+
   public static JHipsterModule module() {
     // @formatter:off
-   return moduleBuilder(testModuleProperties())
+   JHipsterModuleProperties properties = testModuleProperties();
+   return moduleBuilder(properties)
     .context()
       .put("packageName", "com.test.myapp")
       .and()
     .files()
       .add(from("init/gitignore"), to(".gitignore"))
-      .addExecutable(from("init/.husky/pre-commit"), to(".husky/pre-commit"))
-      .batch(from("server/javatool/base"), to("src/main/java/com/company/myapp/errors"))
+      .addExecutable(from("prettier/.husky/pre-commit"), to(".husky/pre-commit"))
+      .batch(from("server/javatool/base/main/error"), to("src/main/java/com/company/myapp/errors"))
         .addTemplate("Assert.java.mustache")
         .addTemplate("AssertionException.java.mustache")
         .and()
-        .add(from("server/springboot/core/MainApp.java.mustache"), to("src/main/java/com/company/myapp/MyApp.java"))
+        .add(from("server/springboot/core/main/MainApp.java.mustache"), to("src/main/java/com/company/myapp/MyApp.java"))
       .add(from("init/README.md.mustache"), to("README.md"))
+      .move(path("dummy.txt"), to("dummy.json"))
       .and()
     .documentation(documentationTitle("Cucumber integration"), from("server/springboot/cucumber/cucumber.md.mustache"))
     .documentation(documentationTitle("Another cucumber integration"), from("server/springboot/cucumber/cucumber.md.mustache"))
-    .readmeSection("This is a readme section")
-    .startupCommand("This is a startup section")
+    .startupCommands()
+      .dockerCompose("src/main/docker/sonar.yml")
+      .maven("clean verify sonar:sonar")
+      .gradle("clean build sonarqube --info")
+      .and()
     .mandatoryReplacements()
-      .in("src/main/java/com/company/myapp/errors/Assert.java")
+      .in(path("src/main/java/com/company/myapp/errors/Assert.java"))
         .add(text("Ensure that the input is not null"), "Dummy replacement")
-        .add(regex("will be displayed in [^ ]+ message"), "Another dummy replacement")
+        .add(regex("will be displayed in an [^ ]+ message"), "Another dummy replacement")
         .add(lineBeforeText("import java.util.Objects;"), "import java.util.Collection;")
         .and()
       .and()
     .optionalReplacements()
-      .in("src/main/java/com/company/myapp/errors/Assert.java")
+      .in(path("src/main/java/com/company/myapp/errors/Assert.java"))
         .add(text("Ensure that the given collection is not empty"), "Dummy collection replacement")
         .add(regex("if the collection is [^ ]+ or empty"), "Another dummy collection replacement")
-        .add(lineBeforeRegex("public static class IntegerAsserter\\s*\\{"), "  // Dummy comment")
+        .add(lineBeforeRegex("public static final class IntegerAsserter\\s*\\{"), "  // Dummy comment")
         .add(lineBeforeText("import java.time.Instant;"), "import java.math.BigDecimal;")
         .and()
-      .in("dummy")
+      .in(path("dummy"))
         .add(text("Ensure that the input is not null"), "Dummy replacement")
         .and()
       .and()
+    .javaBuildProperties()
+      .set(buildPropertyKey("spring-profiles-active"), buildPropertyValue("local"))
+      .and()
     .javaDependencies()
-      .setVersion(javaDependencyVersion("dummy-dependency", "4.5.8"))
       .removeDependency(dependencyId("net.logstash.logback", "logstash-logback-encoder"))
+      .addDependency(reflectionsDependency(JavaDependencyScope.TEST))
       .addDependency(groupId("org.springframework.boot"), artifactId("spring-boot-starter"))
-      .addDependency(groupId("org.zalando"), artifactId("problem-spring-web"), versionSlug("problem-spring"))
-      .addDependency(groupId("io.jsonwebtoken"), artifactId("jjwt-api"), versionSlug("jjwt.version"))
+      .addDependency(groupId("io.jsonwebtoken"), artifactId("jjwt-api"), versionSlug("json-web-token.version"))
       .addDependency(optionalTestDependency())
       .addDependency(springBootStarterWebDependency())
+      .addDependencyManagement(commonsLang3DependencyManagement(JavaDependencyScope.TEST))
       .addDependencyManagement(springBootDependencyManagement())
       .addDependencyManagement(springBootDefaultTypeDependencyManagement())
+      .removeDependencyManagement(dependencyId("org.springdoc", "springdoc-openapi-ui"))
       .and()
-    .javaBuildPlugins()
+    .mavenPlugins()
       .pluginManagement(mavenEnforcerPluginManagement())
       .plugin(mavenEnforcerPlugin())
+      .plugin(asciidoctorPlugin())
+      .and()
+    .gradleConfigurations()
+      .addConfiguration(
+        """
+        tasks.build {
+          dependsOn("processResources")
+        }
+
+        tasks.processResources {
+          filesMatching("**/*.yml", "**/*.properties") {
+            filter {
+              it.replace("@spring.profiles.active@", springProfilesActive)
+            }
+          }
+        }
+        """
+      )
+      .and()
+    .gradlePlugins()
+      .plugin(jacocoGradlePlugin())
+      .plugin(checkstyleGradlePlugin())
+      .and()
+    .gradleConfigurations()
+      .addTasksTestInstruction(
+        """
+        finalizedBy("jacocoTestReport")\
+        """
+      )
+    .and()
+    .javaBuildProfiles()
+      .addProfile(localBuildProfile())
+        .activation(buildProfileActivation().activeByDefault(false))
+        .properties()
+          .set(buildPropertyKey("spring.profiles.active"), buildPropertyValue("local"))
+          .and()
+        .mavenPlugins()
+          .pluginManagement(mavenEnforcerPluginManagement())
+          .plugin(mavenEnforcerPlugin())
+          .and()
+        .gradleProfilePlugins()
+          .plugin(checkstyleGradleProfilePlugin())
+          .plugin(gitPropertiesGradleProfilePlugin())
+          .and()
+        .javaDependencies()
+          .addTestDependency(groupId("org.cassandraunit"), artifactId("cassandra-unit"), versionSlug("cassandraunit"))
+          .removeDependency(dependencyId("org.springframework.boot", "spring-boot-starter-web"))
+          .removeDependencyManagement(dependencyId("org.springframework.boot", "spring-boot-starter-web"))
+          .and()
+        .and()
       .and()
     .packageJson()
+      .addScript(scriptKey("build"), scriptCommand("ng build --output-path={{projectBuildDirectory}}/classes/static"))
       .addScript(scriptKey("serve"), scriptCommand("tikui-core serve"))
-      .addDependency(packageName("@angular/animations"), VersionSource.ANGULAR)
+      .addDependency(packageName("@angular/animations"), VersionSource.ANGULAR, packageName("@angular/core"))
       .addDevDependency(packageName("@playwright/test"), VersionSource.COMMON)
       .and()
+    .mandatoryReplacements()
+      .in(path("package.json"))
+        .add(lineBeforeText("  \"engines\":"), jestSonar(properties.indentation()))
+      .and()
+    .and()
     .preActions()
       .add(() -> log.debug("Applying fixture module"))
       .add(() -> log.debug("You shouldn't add this by default in your modules :D"))
@@ -98,25 +181,64 @@ public final class JHipsterModulesFixture {
       .add(context -> log.debug("Applied on {}", context.projectFolder().get()))
       .and()
     .springMainProperties()
+      .comment(propertyKey("springdoc.swagger-ui.operationsSorter"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("alpha"))
       .and()
-    .springMainProperties(springProfile("local"))
+    .springLocalProperties()
+      .comment(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("false"))
       .and()
     .springTestProperties()
+      .comment(propertyKey("springdoc.swagger-ui.operationsSorter"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("test"))
       .and()
     .springTestProperties(springProfile("local"))
+      .comment(propertyKey("springdoc.swagger-ui"), comment("Swagger properties"))
+      .comment(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("test"))
+      .set(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("test"))
+      .set(propertyKey("springdoc.swagger-ui.tagsSorter"), propertyValue("test"))
+      .set(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("test"))
+      .and()
+    .springTestFactories()
+      .append(propertyKey("o.s.c.ApplicationListener"), propertyValue("c.m.m.MyListener1"))
+      .append(propertyKey("o.s.c.ApplicationListener"), propertyValue("c.m.m.MyListener2"))
+      .and()
+    .gitIgnore()
+      .comment("Comment")
+      .pattern(".my-hidden-folder/*")
       .and()
     .build();
     // @formatter:on
+  }
+
+  private static JavaDependency reflectionsDependency(JavaDependencyScope scope) {
+    return javaDependency().groupId("org.reflections").artifactId("reflections").versionSlug("reflections").scope(scope).build();
+  }
+
+  private static JavaDependency commonsLang3DependencyManagement(JavaDependencyScope scope) {
+    return javaDependency()
+      .groupId("org.apache.commons")
+      .artifactId("commons-lang3")
+      .versionSlug("commons-lang3.version")
+      .scope(scope)
+      .build();
+  }
+
+  private static String jestSonar(Indentation indentation) {
+    return """
+    %s"jestSonar": {
+    %s"reportPath": "{{projectBuildDirectory}}/test-results",
+    %s"reportFile": "TESTS-results-sonar.xml"
+    %s},
+    """.formatted(indentation.spaces(), indentation.times(2), indentation.times(2), indentation.spaces());
   }
 
   public static JavaDependency springBootStarterWebDependency() {
     return javaDependency()
       .groupId("org.springframework.boot")
       .artifactId("spring-boot-starter-web")
+      .dependencySlug("spring-boot-starter-web")
       .addExclusion(groupId("org.springframework.boot"), artifactId("spring-boot-starter-tomcat"))
       .build();
   }
@@ -141,7 +263,11 @@ public final class JHipsterModulesFixture {
   }
 
   public static DependencyId springBootDependencyId() {
-    return new DependencyId(groupId("org.springframework.boot"), artifactId("spring-boot-dependencies"));
+    return DependencyId.builder()
+      .groupId(groupId("org.springframework.boot"))
+      .artifactId(artifactId("spring-boot-dependencies"))
+      .type(JavaDependencyType.POM)
+      .build();
   }
 
   public static JavaDependency defaultVersionDependency() {
@@ -149,13 +275,22 @@ public final class JHipsterModulesFixture {
   }
 
   public static JavaDependency dependencyWithVersion() {
-    return javaDependency().groupId("org.zalando").artifactId("problem-spring-web").versionSlug("problem-spring").build();
+    return javaDependency().groupId("io.jsonwebtoken").artifactId("jjwt-jackson").versionSlug("json-web-token").build();
+  }
+
+  public static JavaDependency dependencyWithVersionAndExclusion() {
+    return javaDependency()
+      .groupId("io.jsonwebtoken")
+      .artifactId("jjwt-jackson")
+      .versionSlug("json-web-token")
+      .addExclusion(DependencyId.of(new GroupId("com.fasterxml.jackson.core"), new ArtifactId("jackson-databind")))
+      .build();
   }
 
   public static JavaBuildCommands javaDependenciesCommands() {
     SetVersion setVersion = new SetVersion(springBootVersion());
     RemoveDirectJavaDependency remove = new RemoveDirectJavaDependency(
-      new DependencyId(new GroupId("spring-boot"), new ArtifactId("1.2.3"))
+      DependencyId.of(new GroupId("spring-boot"), new ArtifactId("1.2.3"))
     );
     AddDirectJavaDependency add = new AddDirectJavaDependency(optionalTestDependency());
 
@@ -166,17 +301,30 @@ public final class JHipsterModulesFixture {
     return optionalTestDependencyBuilder().build();
   }
 
+  public static MavenBuildExtension mavenBuildExtensionWithSlug() {
+    return mavenBuildExtension().groupId("kr.motd.maven").artifactId("os-maven-plugin").versionSlug("os-maven-plugin.version").build();
+  }
+
   public static JavaDependencyOptionalValueBuilder optionalTestDependencyBuilder() {
     return javaDependency()
       .groupId("org.junit.jupiter")
       .artifactId("junit-jupiter-engine")
       .versionSlug("spring-boot")
+      .classifier("test")
       .scope(JavaDependencyScope.TEST)
       .optional();
   }
 
   public static DependencyId jsonWebTokenDependencyId() {
-    return new DependencyId(new GroupId("io.jsonwebtoken"), new ArtifactId("jjwt-api"));
+    return DependencyId.of(new GroupId("io.jsonwebtoken"), new ArtifactId("jjwt-api"));
+  }
+
+  public static BuildProfileId localBuildProfile() {
+    return buildProfileId("local");
+  }
+
+  public static BuildProperty springProfilesActiveProperty() {
+    return new BuildProperty(new PropertyKey("spring.profiles.active"), new PropertyValue("local"));
   }
 
   public static JHipsterModuleContext context() {
@@ -187,12 +335,20 @@ public final class JHipsterModulesFixture {
     return moduleBuilder(testModuleProperties());
   }
 
-  public static JHipsterModuleProperties testModuleProperties() {
-    return new JHipsterModuleProperties(new JHipsterProjectFolder(TestFileUtils.tmpDirForTest()), false, null);
+  public static JHipsterModuleContext emptyModuleContext() {
+    return JHipsterModuleContext.builder(emptyModuleBuilder()).build();
   }
 
-  public static CurrentJavaDependenciesVersions currentJavaDependenciesVersion() {
-    return new CurrentJavaDependenciesVersions(List.of(springBootVersion(), problemVersion(), mavenEnforcerVersion()));
+  public static JHipsterModuleProperties testModuleProperties() {
+    return new JHipsterModuleProperties(TestFileUtils.tmpDirForTest(), true, null);
+  }
+
+  public static JavaDependenciesVersions currentJavaDependenciesVersion() {
+    return new JavaDependenciesVersions(List.of(springBootVersion(), problemVersion(), mavenEnforcerVersion(), jsonWebTokenVersion()));
+  }
+
+  public static JavaDependencyVersion jsonWebTokenVersion() {
+    return new JavaDependencyVersion("json-web-token", "1.2.3");
   }
 
   private static JavaDependencyVersion problemVersion() {
@@ -209,12 +365,12 @@ public final class JHipsterModulesFixture {
 
   public static JHipsterModuleProperties allProperties() {
     return new JHipsterModuleProperties(
-      new JHipsterProjectFolder("/test"),
+      "/test",
       true,
       Map.of(
         "packageName",
         "tech.jhipster.chips",
-        "prettierDefaultIndent",
+        "indentSize",
         2,
         "projectName",
         "JHipster project",
@@ -232,27 +388,12 @@ public final class JHipsterModulesFixture {
     );
   }
 
-  public static JHipsterModulePropertiesDefinition propertiesDefinition() {
-    return JHipsterModulePropertiesDefinition
-      .builder()
-      .addBasePackage()
-      .addIndentation()
-      .addProjectName()
-      .addProjectBaseName()
-      .add(optionalStringProperty("optionalString").build())
-      .add(mandatoryIntegerProperty("mandatoryInteger").build())
-      .add(mandatoryBooleanProperty("mandatoryBoolean").build())
-      .add(optionalBooleanProperty("optionalBoolean").build())
-      .build();
-  }
-
   public static JHipsterModulePropertiesBuilder propertiesBuilder(String projectFolder) {
     return new JHipsterModulePropertiesBuilder(projectFolder);
   }
 
   public static SpringProperty springLocalMainProperty() {
-    return SpringProperty
-      .builder(SpringPropertyType.MAIN_PROPERTIES)
+    return SpringProperty.builder(SpringPropertyType.MAIN_PROPERTIES)
       .key(propertyKey("springdoc.swagger-ui.operationsSorter"))
       .value(propertyValue("alpha", "beta"))
       .profile(springProfile("local"))
@@ -260,74 +401,240 @@ public final class JHipsterModulesFixture {
   }
 
   public static SpringProperty springMainProperty() {
-    return SpringProperty
-      .builder(SpringPropertyType.MAIN_PROPERTIES)
+    return SpringProperty.builder(SpringPropertyType.MAIN_PROPERTIES)
       .key(propertyKey("springdoc.swagger-ui.operationsSorter"))
       .value(propertyValue("alpha", "beta"))
       .build();
   }
 
   public static SpringProperty springTestProperty() {
-    return SpringProperty
-      .builder(SpringPropertyType.TEST_PROPERTIES)
+    return SpringProperty.builder(SpringPropertyType.TEST_PROPERTIES)
       .key(propertyKey("springdoc.swagger-ui.operationsSorter"))
       .value(propertyValue("alpha", "beta"))
       .build();
   }
 
-  public static JavaBuildPlugin mavenEnforcerPluginManagement() {
-    return javaBuildPlugin()
+  public static MavenPlugin mavenEnforcerPluginManagement() {
+    return mavenPlugin()
       .groupId("org.apache.maven.plugins")
       .artifactId("maven-enforcer-plugin")
       .versionSlug("maven-enforcer-plugin")
-      .additionalElements(
+      .addDependency(dependencyWithVersionAndExclusion())
+      .addDependency(groupId("io.jsonwebtoken"), artifactId("jjwt-jackson"), versionSlug("json-web-token"))
+      .addExecution(pluginExecution().goals("enforce").id("enforce-versions"))
+      .addExecution(
+        pluginExecution()
+          .goals("enforce")
+          .id("enforce-dependencyConvergence")
+          .configuration(
+            """
+            <rules>
+              <DependencyConvergence/>
+            </rules>
+            <fail>false</fail>
+            """
+          )
+      )
+      .configuration(
         """
-        <executions><execution><id>enforce-versions</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>enforce-dependencyConvergence</id>
-            <configuration>
-              <rules>
-                <DependencyConvergence/>
-              </rules>
-              <fail>false</fail>
-            </configuration>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <rules>
-            <requireMavenVersion>
-              <message>You are running an older version of Maven. JHipster requires at least Maven ${maven.version}</message>
-              <version>[${maven.version},)</version>
-            </requireMavenVersion>
-            <requireJavaVersion>
-              <message>You are running an incompatible version of Java. JHipster supports JDK 17.</message>
-              <version>[17,18)</version>
-            </requireJavaVersion>
-          </rules>
-        </configuration>
+        <rules>
+          <requireMavenVersion>
+            <message>You are running an older version of Maven. JHipster requires at least Maven ${maven.version}</message>
+            <version>[${maven.version},)</version>
+          </requireMavenVersion>
+          <requireJavaVersion>
+              <message>You are running an incompatible version of Java. JHipster engine supports JDK 21+.</message>
+              <version>[21,22)</version>
+          </requireJavaVersion>
+        </rules>
         """
       )
       .build();
   }
 
-  public static JavaBuildPlugin mavenEnforcerPlugin() {
-    return javaBuildPlugin().groupId("org.apache.maven.plugins").artifactId("maven-enforcer-plugin").build();
+  public static GradleMainBuildPlugin jacocoGradlePlugin() {
+    return gradleCorePlugin()
+      .id("jacoco")
+      .toolVersionSlug("jacoco")
+      .configuration(
+        """
+        jacoco {
+          toolVersion = libs.versions.jacoco.get()
+        }
+
+        tasks.jacocoTestReport {
+          dependsOn("test", "integrationTest")
+          reports {
+            xml.required.set(true)
+            html.required.set(false)
+          }
+          executionData.setFrom(fileTree(buildDir).include("**/jacoco/test.exec", "**/jacoco/integrationTest.exec"))
+        }
+        """
+      )
+      .build();
   }
 
-  public static class JHipsterModulePropertiesBuilder {
+  public static GradleMainBuildPlugin checkstyleGradlePlugin() {
+    return gradleCorePlugin()
+      .id("checkstyle")
+      .toolVersionSlug("checkstyle")
+      .withBuildGradleImport("java.util.Properties")
+      .configuration(
+        """
+        checkstyle {
+          toolVersion = libs.versions.checkstyle.get()
+        }
+        """
+      )
+      .build();
+  }
 
+  public static GradleProfilePlugin checkstyleGradleProfilePlugin() {
+    return gradleCorePlugin()
+      .id("checkstyle")
+      .toolVersionSlug("checkstyle")
+      .withBuildGradleImport("java.util.Properties")
+      .configuration(
+        """
+        checkstyle {
+          toolVersion = libs.versions.checkstyle.get()
+        }
+        """
+      )
+      .build();
+  }
+
+  public static GradlePlugin nodeGradlePlugin() {
+    return gradleCommunityPlugin()
+      .id("com.github.node-gradle.node")
+      .pluginSlug("node-gradle")
+      .versionSlug("node-gradle")
+      .withBuildGradleImport("com.github.gradle.node.npm.task.NpmTask")
+      .configuration(
+        """
+        node {
+          version.set("v20.14.0")
+          npmVersion.set("10.8.1")
+          npmWorkDir.set(file("build"))
+        }
+
+        val buildTaskUsingNpm = tasks.register<NpmTask>("buildNpm") {
+          description = "Build the frontend project using NPM"
+          group = "Build"
+          dependsOn("npmInstall")
+          npmCommand.set(listOf("run", "build"))
+          environment.set(mapOf("APP_VERSION" to project.version.toString()))
+        }
+
+        val testTaskUsingNpm = tasks.register<NpmTask>("testNpm") {
+          description = "Test the frontend project using NPM"
+          group = "verification"
+          dependsOn("npmInstall", "buildNpm")
+          npmCommand.set(listOf("run", "test"))
+          ignoreExitValue.set(false)
+          workingDir.set(projectDir)
+          execOverrides {
+            standardOutput = System.out
+          }
+        }
+
+        tasks.bootJar {
+          dependsOn("buildNpm")
+          from("build/classes/static") {
+              into("BOOT-INF/classes/static")
+          }
+        }
+        """
+      )
+      .build();
+  }
+
+  public static GradleProfilePlugin gitPropertiesGradleProfilePlugin() {
+    return gradleProfilePlugin()
+      .id("com.gorylenko.gradle-git-properties")
+      .dependency(groupId("com.gorylenko.gradle-git-properties"), artifactId("gradle-git-properties"))
+      .versionSlug("git-properties")
+      .configuration(
+        """
+        gitProperties {
+          failOnNoGitDirectory = false
+          keys = listOf("git.branch", "git.commit.id.abbrev", "git.commit.id.describe", "git.build.version")
+        }
+        """
+      )
+      .build();
+  }
+
+  public static GradleProfilePlugin dockerGradlePluginDependency() {
+    return gradleProfilePlugin()
+      .id("com.bmuschko.docker-remote-api")
+      .dependency(groupId("com.bmuschko"), artifactId("gradle-docker-plugin"))
+      .versionSlug("docker-plugin")
+      .withBuildGradleImport("java.util.Properties")
+      .build();
+  }
+
+  public static JavaDependencyVersion checkstyleToolVersion() {
+    return new JavaDependencyVersion("checkstyle", "8.42.1");
+  }
+
+  public static MavenPlugin mavenEnforcerPlugin() {
+    return mavenPlugin().groupId("org.apache.maven.plugins").artifactId("maven-enforcer-plugin").build();
+  }
+
+  public static MavenPlugin asciidoctorPlugin() {
+    GroupId asciidoctorGroupId = new GroupId("org.asciidoctor");
+    return mavenPlugin()
+      .groupId(asciidoctorGroupId)
+      .artifactId("asciidoctor-maven-plugin")
+      .addDependency(javaDependency().groupId(asciidoctorGroupId).artifactId("asciidoctorj-screenshot").build())
+      .addDependency(javaDependency().groupId(asciidoctorGroupId).artifactId("asciidoctorj-diagram").build())
+      .build();
+  }
+
+  public static JHipsterModulesToApply modulesToApply() {
+    return new JHipsterModulesToApply(
+      List.of(moduleSlug("maven-java"), moduleSlug("init")),
+      propertiesBuilder("/dummy")
+        .projectName("Chips Project")
+        .basePackage("tech.jhipster.chips")
+        .put("baseName", "chips")
+        .put("serverPort", 8080)
+        .build()
+    );
+  }
+
+  public static JHipsterModuleSlug moduleSlug(String slug) {
+    return new JHipsterModuleSlug(slug);
+  }
+
+  public static JHipsterFeatureSlug featureSlug(String slug) {
+    return new JHipsterFeatureSlug(slug);
+  }
+
+  public static JHipsterModuleUpgrade upgrade() {
+    return JHipsterModuleUpgrade.builder()
+      .doNotAdd(to(".husky/pre-commit"))
+      .delete(path("documentation/cucumber-integration.md"))
+      .replace(filesWithExtension("java"), fileStart(), "// This is an updated file\n\n")
+      .build();
+  }
+
+  public static final class JHipsterModulePropertiesBuilder {
+
+    private boolean commitModules = false;
     private final String projectFolder;
     private final Map<String, Object> properties = new HashMap<>();
 
     private JHipsterModulePropertiesBuilder(String projectFolder) {
       this.projectFolder = projectFolder;
+    }
+
+    public JHipsterModulePropertiesBuilder commitModules() {
+      commitModules = true;
+
+      return this;
     }
 
     public JHipsterModulePropertiesBuilder basePackage(String basePackage) {
@@ -348,6 +655,13 @@ public final class JHipsterModulesFixture {
       return this;
     }
 
+    public JHipsterModulePropertiesBuilder springConfigurationFormat(SpringConfigurationFormat format) {
+      Assert.notNull("format", format);
+      properties.put("springConfigurationFormat", format.get());
+
+      return this;
+    }
+
     public JHipsterModulePropertiesBuilder put(String key, Object value) {
       properties.put(key, value);
 
@@ -355,7 +669,7 @@ public final class JHipsterModulesFixture {
     }
 
     public JHipsterModuleProperties build() {
-      return new JHipsterModuleProperties(projectFolder, false, properties);
+      return new JHipsterModuleProperties(projectFolder, commitModules, properties);
     }
   }
 }

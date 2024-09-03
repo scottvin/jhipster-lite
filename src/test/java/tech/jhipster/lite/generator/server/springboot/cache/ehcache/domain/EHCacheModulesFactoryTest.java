@@ -8,7 +8,6 @@ import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleAsserter;
 
 @UnitTest
 class EHCacheModulesFactoryTest {
@@ -20,18 +19,25 @@ class EHCacheModulesFactoryTest {
     JHipsterModule module = factory.buildJavaConfigurationModule(properties());
 
     commonEHCacheModuleAsserter(module)
-      .createFile("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/CacheConfiguration.java")
+      .hasFile("src/main/java/tech/jhipster/jhlitest/wire/cache/infrastructure/secondary/CacheConfiguration.java")
       .containing("JCacheManagerCustomizer")
       .and()
-      .createFiles("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/EhcacheProperties.java")
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/secondary/cache",
+      .hasFiles("src/main/java/tech/jhipster/jhlitest/wire/cache/infrastructure/secondary/EhcacheProperties.java")
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/wire/cache/infrastructure/secondary",
         "CacheConfigurationIT.java",
         "CacheConfigurationTest.java"
       )
-      .createFile("src/main/resources/config/application.properties")
-      .containing("application.cache.ehcache.max-entries=100")
-      .containing("application.cache.ehcache.time-to-live-seconds=3600");
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        application:
+          cache:
+            ehcache:
+              max-entries: 100
+              time-to-live-seconds: 3600
+        """
+      );
   }
 
   @Test
@@ -39,44 +45,21 @@ class EHCacheModulesFactoryTest {
     JHipsterModule module = factory.buildXmlConfigurationModule(properties());
 
     commonEHCacheModuleAsserter(module)
-      .createFile("pom.xml")
+      .hasFiles("src/main/resources/config/ehcache/ehcache.xml")
+      .hasFile("src/main/resources/config/application.yml")
       .containing(
         """
-            <dependency>
-              <groupId>jakarta.xml.bind</groupId>
-              <artifactId>jakarta.xml.bind-api</artifactId>
-            </dependency>
+        spring:
+          cache:
+            jcache:
+              config: classpath:config/ehcache/ehcache.xml
         """
-      )
-      .containing(
-        """
-            <dependency>
-              <groupId>org.glassfish.jaxb</groupId>
-              <artifactId>jaxb-runtime</artifactId>
-              <scope>runtime</scope>
-            </dependency>
-        """
-      )
-      .and()
-      .createFile("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/CacheConfiguration.java")
-      .notContaining("JCacheManagerCustomizer")
-      .and()
-      .createFiles("src/main/resources/config/ehcache/ehcache.xml")
-      .createFile("src/main/resources/config/application.properties")
-      .containing("spring.cache.jcache.config=classpath:config/ehcache/ehcache.xml");
+      );
   }
 
-  private ModuleAsserter commonEHCacheModuleAsserter(JHipsterModule module) {
-    return assertThatModuleWithFiles(module, pomFile(), lockbackFile(), testLockbackFile())
-      .createFile("pom.xml")
-      .containing(
-        """
-            <dependency>
-              <groupId>org.springframework.boot</groupId>
-              <artifactId>spring-boot-starter-cache</artifactId>
-            </dependency>
-        """
-      )
+  private JHipsterModuleAsserter commonEHCacheModuleAsserter(JHipsterModule module) {
+    return assertThatModuleWithFiles(module, pomFile(), logbackFile(), testLogbackFile())
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -90,19 +73,20 @@ class EHCacheModulesFactoryTest {
             <dependency>
               <groupId>org.ehcache</groupId>
               <artifactId>ehcache</artifactId>
+              <classifier>jakarta</classifier>
             </dependency>
         """
       )
       .and()
-      .createFile("src/main/resources/logback-spring.xml")
+      .hasFile("src/main/resources/logback-spring.xml")
       .containing("<logger name=\"org.ehcache\" level=\"WARN\" />")
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("<logger name=\"org.ehcache\" level=\"WARN\" />")
       .and();
   }
 
   private JHipsterModuleProperties properties() {
-    return JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).basePackage("com.jhipster.test").build();
+    return JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).basePackage("tech.jhipster.jhlitest").build();
   }
 }

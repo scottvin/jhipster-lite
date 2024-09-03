@@ -1,5 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
 
 import { HealthService } from './health.service';
 import { Health, HealthStatus } from './health.model';
@@ -8,13 +12,16 @@ import { HealthModalComponent } from './modal/health-modal.component';
 @Component({
   selector: 'jhi-health',
   templateUrl: './health.component.html',
-  styleUrls: ['./health.component.css'],
+  imports: [CommonModule, MatDialogModule, MatIconModule, MatButtonModule, MatTableModule],
+  standalone: true,
+  styleUrl: './health.component.css',
 })
-export class HealthComponent implements OnInit {
+export default class HealthComponent implements OnInit {
   displayedColumns: string[] = ['key', 'value', 'detail'];
   datasource: any = [];
 
-  constructor(public dialog: MatDialog, private healthService: HealthService) {}
+  private readonly dialog = inject(MatDialog);
+  private readonly healthService = inject(HealthService);
 
   ngOnInit(): void {
     this.refresh();
@@ -32,7 +39,7 @@ export class HealthComponent implements OnInit {
       next: health => {
         this.datasource = Object.keys(health.components).map(key => {
           return {
-            key: key,
+            key,
             status: health.components[key].status,
             details: health.components[key].details,
           };

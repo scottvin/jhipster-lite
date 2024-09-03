@@ -1,8 +1,8 @@
-package {{packageName}}.technical.infrastructure.config.kafka;
+package {{packageName}}.wire.kafka.infrastructure.config;
 
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "kafka")
 public class KafkaProperties {
 
-  @Value("${kafka.bootstrap.servers:localhost:9092}")
+  @Value("${kafka.bootstrap.servers:#{'localhost:9092'}}")
   private String bootstrapServers;
 
   @Value("${kafka.polling.timeout:10000}")

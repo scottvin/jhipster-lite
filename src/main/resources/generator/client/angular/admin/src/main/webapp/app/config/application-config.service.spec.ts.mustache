@@ -10,10 +10,6 @@ describe('ApplicationConfigService', () => {
     service = TestBed.inject(ApplicationConfigService);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-
   describe('without prefix', () => {
     it('should return correctly', () => {
       expect(service.getEndpointFor('api')).toEqual('api');

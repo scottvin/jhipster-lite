@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.config.pulsar;
+package {{packageName}}.wire.pulsar.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
@@ -19,10 +19,10 @@ class PulsarConfigurationIT {
   private static final String TEST_PAYLOAD = "test-payload";
 
   @Autowired
-  PulsarProperties config;
+  private PulsarProperties config;
 
   @Autowired
-  PulsarClient pulsarClient;
+  private PulsarClient pulsarClient;
 
   @Test
   void testPulsar() throws Exception {
@@ -38,13 +38,9 @@ class PulsarConfigurationIT {
     assertThat(consumerTopicNames.get(0)).isEqualTo("test-topic");
     assertThat(consumerProps).containsEntry("subscriptionName", "test-subscription");
 
-    Consumer<String> consumer = pulsarClient.newConsumer(Schema.STRING)
-      .loadConf(consumerProps)
-      .subscribe();
+    Consumer<String> consumer = pulsarClient.newConsumer(Schema.STRING).loadConf(consumerProps).subscribe();
 
-    Producer<String> producer = pulsarClient.newProducer(Schema.STRING)
-      .loadConf(producerProps)
-      .create();
+    Producer<String> producer = pulsarClient.newProducer(Schema.STRING).loadConf(producerProps).create();
 
     producer.send(TEST_PAYLOAD);
 

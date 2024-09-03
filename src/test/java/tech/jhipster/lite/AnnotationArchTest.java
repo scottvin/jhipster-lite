@@ -1,56 +1,60 @@
 package tech.jhipster.lite;
 
-import static com.tngtech.archunit.base.DescribedPredicate.*;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.*;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.*;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @UnitTest
 class AnnotationArchTest {
 
+  private static final String ROOT_PACKAGE = "tech.jhipster.lite";
+  private static final String ROOT_PACKAGE_PROJECT = ROOT_PACKAGE + "..";
+
+  //@formatter:off
+  private final JavaClasses classes = new ClassFileImporter()
+    .importPackages(ROOT_PACKAGE)
+    .that(
+      are(
+        not(equivalentTo(UnitTest.class))
+        .and(not(equivalentTo(IntegrationTest.class))
+        .and(not(equivalentTo(ComponentTest.class))))
+      )
+    );
+
+  //@formatter:on
+
   @Test
-  void shouldHaveUnitTestAnnotation() {
-    JavaClasses importedClasses = new ClassFileImporter()
-      .importPackages("tech.jhipster.lite")
-      .that(are(not(equivalentTo(UnitTest.class)).and(not(equivalentTo(IntegrationTest.class)))));
-
-    ArchRule rule = classes()
+  void shouldHaveUnitTestOrComponentTestAnnotation() {
+    //@formatter:off
+    classes()
       .that()
-      .resideInAnyPackage("tech.jhipster.lite..")
-      .and()
-      .haveSimpleNameEndingWith("Test")
-      .should()
-      .beAnnotatedWith(UnitTest.class)
-      .orShould()
-      .beAnnotatedWith(ComponentTest.class)
-      .orShould()
-      .beAnnotatedWith(Nested.class)
-      .orShould()
-      .beInterfaces();
-
-    rule.check(importedClasses);
+        .resideInAnyPackage(ROOT_PACKAGE_PROJECT)
+        .and().haveSimpleNameEndingWith("Test")
+        .and(not(simpleNameEndingWith("IT")))
+        .and().areTopLevelClasses()
+      .should().beMetaAnnotatedWith(UnitTest.class)
+      .orShould().beMetaAnnotatedWith(ComponentTest.class)
+      .orShould().beInterfaces()
+      .check(classes);
+    //@formatter:on
   }
 
   @Test
   void shouldHaveIntegrationTestAnnotation() {
-    JavaClasses importedClasses = new ClassFileImporter().importPackages("tech.jhipster.lite");
-
-    ArchRule rule = classes()
+    //@formatter:off
+    classes()
       .that()
-      .resideInAnyPackage("tech.jhipster.lite..")
-      .and()
-      .haveSimpleNameEndingWith("IT")
-      .should()
-      .beAnnotatedWith(IntegrationTest.class)
-      .orShould()
-      .beAnnotatedWith(Nested.class);
-
-    rule.check(importedClasses);
+        .resideInAnyPackage(ROOT_PACKAGE_PROJECT)
+        .and().haveSimpleNameEndingWith("IT")
+        .and().areTopLevelClasses()
+      .should().beMetaAnnotatedWith(IntegrationTest.class)
+      .check(classes);
+    //@formatter:on
   }
 }

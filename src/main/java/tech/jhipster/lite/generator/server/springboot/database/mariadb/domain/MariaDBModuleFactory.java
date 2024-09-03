@@ -3,11 +3,12 @@ package tech.jhipster.lite.generator.server.springboot.database.mariadb.domain;
 import static tech.jhipster.lite.generator.server.springboot.database.sqlcommon.domain.SQLCommonModuleBuilder.sqlCommonModuleBuilder;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.docker.domain.DockerImages;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.generator.project.domain.DatabaseType;
+import tech.jhipster.lite.generator.server.springboot.database.common.domain.DatabaseType;
 import tech.jhipster.lite.module.domain.JHipsterModule;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
+import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class MariaDBModuleFactory {
 
@@ -30,7 +31,9 @@ public class MariaDBModuleFactory {
       artifactId("mariadb")
     )
       .javaDependencies()
-      .addDependency(groupId("org.mariadb.jdbc"), artifactId("mariadb-java-client"))
+      .addDependency(
+        javaDependency().groupId("org.mariadb.jdbc").artifactId("mariadb-java-client").scope(JavaDependencyScope.RUNTIME).build()
+      )
       .and()
       .springMainProperties()
       .set(propertyKey("spring.datasource.url"), propertyValue("jdbc:mariadb://localhost:3306/" + properties.projectBaseName().name()))

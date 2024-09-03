@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 GIT_MAIN_BRANCH='main'
 GIT_REMOTE='upstream'
@@ -15,9 +15,10 @@ show_syntax() {
 currentVersion=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
 releaseVersion=${currentVersion//-SNAPSHOT/}
 
-checkGit=$(git status --porcelain|wc -l)
+checkGit=$(git status --porcelain | wc -l)
 if [[ $checkGit != 0 ]]; then
   echo "*** check: there are uncommitted changes..."
+  echo " "
   show_syntax
 fi
 
@@ -29,6 +30,10 @@ echo "*** git: update project..."
 git switch $GIT_MAIN_BRANCH
 git fetch $GIT_REMOTE
 git rebase $GIT_REMOTE/$GIT_MAIN_BRANCH
+
+echo "*** use specific settings.xml"
+mv ~/.m2/settings.xml ~/.m2/settings.xml.save 2> /dev/null
+cp ~/.m2/jhipster.settings.xml ~/.m2/settings.xml
 
 if [[ "$1" == "patch" ]]; then
   echo "*** version: remove SNAPSHOT and keep the version"
@@ -56,19 +61,22 @@ releaseVersion=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStd
 echo "*** update version in package.json"
 npm version "${releaseVersion}" --no-git-tag-version
 
-echo "*** update version in app.json"
-sed -e '/"description": "Version of the JHipster Lite to deploy.",/{N;s/"value": ".*"/"value": "'$releaseVersion'"/1;}' app.json > app.json.sed
-mv -f app.json.sed app.json
-
 echo "*** git: commit, tag and push tag..."
 git add . && git commit -m "Release v${releaseVersion}"
 git tag -a v"${releaseVersion}" -m "Release v${releaseVersion}"
 git push $GIT_REMOTE v"${releaseVersion}"
 
+echo "*** build and publish to maven central"
+./mvnw clean deploy -DskipTests -Drelease
+
 echo "*** version: add SNAPSHOT"
 ./mvnw build-helper:parse-version versions:set \
   -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion}-SNAPSHOT \
   versions:commit -q
+
+echo "*** put back old settings.xml"
+rm ~/.m2/settings.xml
+mv ~/.m2/settings.xml.save ~/.m2/settings.xml 2> /dev/null
 
 echo "*** git: commit, push to $GIT_MAIN_BRANCH..."
 nextVersion=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)

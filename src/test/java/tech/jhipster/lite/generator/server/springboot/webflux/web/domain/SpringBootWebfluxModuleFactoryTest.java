@@ -15,17 +15,16 @@ class SpringBootWebfluxModuleFactoryTest {
   private static final SpringBootWebfluxModuleFactory factory = new SpringBootWebfluxModuleFactory();
 
   @Test
-  void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+  void shouldBuildWebfluxNettyModule() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .put("serverPort", 9000)
       .build();
 
-    JHipsterModule module = factory.buildModule(properties);
+    JHipsterModule module = factory.buildNettyModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
-      .createFile("pom.xml")
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -51,42 +50,29 @@ class SpringBootWebfluxModuleFactoryTest {
             </dependency>
         """
       )
+      .and()
+      .hasFile("src/main/resources/config/application.yml")
       .containing(
         """
-            <dependency>
-              <groupId>org.zalando</groupId>
-              <artifactId>problem-spring-webflux</artifactId>
-              <version>${problem-spring.version}</version>
-            </dependency>
+        server:
+          port: 9000
         """
       )
       .and()
-      .createFile("src/main/resources/config/application.properties")
-      .containing("server.port=9000")
-      .containing("application.exception.details=false")
-      .containing("application.exception.package=org.,java.,net.,javax.,com.,io.,de.,com.jhipster.test")
-      .and()
-      .createFile("src/test/resources/config/application.properties")
-      .containing("server.port=0")
-      .containing("application.exception.package=org.,java.")
-      .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/primary/exception/",
-        "ProblemConfiguration.java",
-        "HeaderUtil.java",
-        "BadRequestAlertException.java",
-        "ErrorConstants.java",
-        "ExceptionTranslator.java",
-        "FieldErrorDTO.java"
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        server:
+          port: 0
+        """
       )
-      .createPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/primary/exception/",
+      .and()
+      .hasPrefixedFiles("src/main/java/tech/jhipster/jhlitest/shared/error/infrastructure/primary", "HeaderUtil.java", "FieldErrorDTO.java")
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/shared/error/infrastructure/primary",
         "HeaderUtilTest.java",
-        "BadRequestAlertExceptionTest.java",
-        "ExceptionTranslatorIT.java",
-        "ExceptionTranslatorTestController.java",
         "FieldErrorDTOTest.java"
       )
-      .createFiles("src/test/java/com/jhipster/test/TestUtil.java");
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/TestUtil.java");
   }
 }

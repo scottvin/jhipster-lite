@@ -2,32 +2,31 @@ package tech.jhipster.lite.generator.server.springboot.database.sqlcommon.domain
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.docker.domain.DockerImage;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.generator.project.domain.DatabaseType;
+import tech.jhipster.lite.generator.server.springboot.database.common.domain.DatabaseType;
 import tech.jhipster.lite.module.domain.DocumentationTitle;
-import tech.jhipster.lite.module.domain.JHipsterDestination;
-import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
-import tech.jhipster.lite.module.domain.JHipsterSource;
 import tech.jhipster.lite.module.domain.LogLevel;
+import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
+import tech.jhipster.lite.module.domain.file.JHipsterDestination;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javabuild.ArtifactId;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class SQLCommonModuleBuilder {
+public final class SQLCommonModuleBuilder {
 
-  private static final String ORG_HIBERNATE = "org.hibernate";
-  private static final PropertyValue FALSE = propertyValue("false");
-  private static final PropertyValue TRUE = propertyValue("true");
+  private static final String ORG_HIBERNATE = "org.hibernate.orm";
+  private static final PropertyValue FALSE = propertyValue(false);
+  private static final PropertyValue TRUE = propertyValue(true);
 
   private SQLCommonModuleBuilder() {}
 
   public static JHipsterModuleBuilder sqlCommonModuleBuilder(
     JHipsterModuleProperties properties,
     DatabaseType databaseType,
-    DockerImage dockerImage,
+    DockerImageVersion dockerImage,
     DocumentationTitle documentationTitle,
     ArtifactId testContainerArtifactId
   ) {
@@ -41,18 +40,20 @@ public class SQLCommonModuleBuilder {
     JHipsterSource source = from("server/springboot/database/" + databaseType.id());
     JHipsterDestination mainDestination = toSrcMainJava()
       .append(properties.packagePath())
-      .append("technical/infrastructure/secondary/")
-      .append(databaseId);
+      .append("wire")
+      .append(databaseId)
+      .append("infrastructure/secondary/");
 
     //@formatter:off
     return moduleBuilder(properties)
       .context()
-        .put("applicationName", properties.projectBaseName().capitalized())
         .put("srcMainDocker", "src/main/docker") // To be used in <databaseId>>.md file
         .put(databaseId + "DockerImageWithVersion", dockerImage.fullName()) // To be used in <databaseId>.yml docker-compose file
         .and()
       .documentation(documentationTitle, source.template(databaseId + ".md"))
-      .startupCommand(startupCommand(databaseId))
+      .startupCommands()
+        .dockerCompose(startupCommand(databaseId))
+        .and()
       .files()
         .add(source.template("DatabaseConfiguration.java"), mainDestination.append("DatabaseConfiguration.java"))
         .add(source.template(databaseId + ".yml"), toSrcMainDocker().append(databaseId + ".yml"))
@@ -76,15 +77,12 @@ public class SQLCommonModuleBuilder {
         )
         .set(
           propertyKey("spring.jpa.hibernate.naming.physical-strategy"),
-          propertyValue("org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy")
+          propertyValue("org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy")
         )
         .set(propertyKey("spring.jpa.open-in-view"), FALSE)
-        .set(propertyKey("spring.jpa.properties.hibernate.cache.use_second_level_cache"), FALSE)
-        .set(propertyKey("spring.jpa.properties.hibernate.cache.use_query_cache"), FALSE)
         .set(propertyKey("spring.jpa.properties.hibernate.connection.provider_disables_autocommit"), TRUE)
         .set(propertyKey("spring.jpa.properties.hibernate.generate_statistics"), FALSE)
-        .set(propertyKey("spring.jpa.properties.hibernate.id.new_generator_mappings"), TRUE)
-        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.batch_size"), propertyValue("25"))
+        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.batch_size"), propertyValue(25))
         .set(propertyKey("spring.jpa.properties.hibernate.jdbc.time_zone"), propertyValue("UTC"))
         .set(propertyKey("spring.jpa.properties.hibernate.order_inserts"), TRUE)
         .set(propertyKey("spring.jpa.properties.hibernate.order_updates"), TRUE)
@@ -99,7 +97,7 @@ public class SQLCommonModuleBuilder {
         .set(propertyKey("spring.datasource.username"), propertyValue(properties.projectBaseName().name()))
         .set(propertyKey("spring.datasource.password"), propertyValue(""))
         .set(propertyKey("spring.datasource.driver-class-name"), propertyValue("org.testcontainers.jdbc.ContainerDatabaseDriver"))
-        .set(propertyKey("spring.datasource.hikari.maximum-pool-size"), propertyValue("2"))
+        .set(propertyKey("spring.datasource.hikari.maximum-pool-size"), propertyValue(2))
         .and()
       .springMainLogger("org.hibernate.validator", LogLevel.WARN)
       .springMainLogger(ORG_HIBERNATE, LogLevel.WARN)
@@ -112,16 +110,17 @@ public class SQLCommonModuleBuilder {
     //@formatter:on
   }
 
-  private static JavaDependency testContainer(ArtifactId testContainerArtifactI) {
+  private static JavaDependency testContainer(ArtifactId testContainerArtifactId) {
     return javaDependency()
       .groupId("org.testcontainers")
-      .artifactId(testContainerArtifactI)
+      .artifactId(testContainerArtifactId)
+      .dependencySlug("%s-%s".formatted("testcontainers", testContainerArtifactId))
       .versionSlug("testcontainers")
       .scope(JavaDependencyScope.TEST)
       .build();
   }
 
   private static String startupCommand(String databaseId) {
-    return "docker-compose -f src/main/docker/" + databaseId + ".yml up -d";
+    return "src/main/docker/" + databaseId + ".yml";
   }
 }

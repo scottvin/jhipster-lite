@@ -1,9 +1,12 @@
 package tech.jhipster.lite.module.domain.javaproperties;
 
 import java.util.Collection;
-import tech.jhipster.lite.error.domain.Assert;
+import java.util.List;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record SpringProperties(Collection<SpringProperty> properties) {
+  public static final SpringProperties EMPTY = new SpringProperties(List.of());
+
   public SpringProperties {
     Assert.field("properties", properties).notNull().noNullElement();
   }

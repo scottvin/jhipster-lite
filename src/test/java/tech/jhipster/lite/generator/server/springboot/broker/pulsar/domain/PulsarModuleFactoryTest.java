@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.broker.pulsar.domain;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -10,12 +10,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.docker.domain.DockerImage;
-import tech.jhipster.lite.docker.domain.DockerImages;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
+import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleFile;
 
 @UnitTest
 @ExtendWith(MockitoExtension.class)
@@ -29,17 +28,16 @@ class PulsarModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    when(dockerImages.get("apachepulsar/pulsar")).thenReturn(new DockerImage("apachepulsar/pulsar", "1.1.1"));
+    when(dockerImages.get("apachepulsar/pulsar")).thenReturn(new DockerImageVersion("apachepulsar/pulsar", "1.1.1"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile(), integrationTestAnnotation())
-      .createFile("pom.xml")
+    assertThatModuleWithFiles(module, pomFile(), integrationTestAnnotation(), readmeFile())
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -60,32 +58,54 @@ class PulsarModuleFactoryTest {
         """
       )
       .and()
-      .createFile("src/main/docker/pulsar.yml")
+      .hasFile("src/main/docker/pulsar.yml")
       .containing("apachepulsar/pulsar:1.1.1")
       .and()
-      .createFile("src/main/resources/config/application.properties")
-      .containing("pulsar.client.service-url=pulsar://localhost:6650")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        pulsar:
+          client:
+            service-url: pulsar://localhost:6650
+        """
+      )
       .and()
-      .createFile("src/test/resources/config/application.properties")
-      .containing("pulsar.client.num-io-threads=8")
-      .containing("pulsar.producer.topic-name=test-topic")
-      .containing("pulsar.consumer.topic-names[0]=test-topic")
-      .containing("pulsar.consumer.subscription-name=test-subscription")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        pulsar:
+          client:
+            num-io-threads: 8
+          consumer:
+            subscription-name: test-subscription
+            topic-names[0]: test-topic
+          producer:
+            topic-name: test-topic
+        """
+      )
       .and()
-      .createJavaTests("com/jhipster/test/PulsarTestContainerExtension.java")
-      .createFile("src/test/java/com/jhipster/test/IntegrationTest.java")
+      .hasJavaTests("tech/jhipster/jhlitest/PulsarTestContainerExtension.java")
+      .hasFile("src/test/java/tech/jhipster/jhlitest/IntegrationTest.java")
       .containing("import org.junit.jupiter.api.extension.ExtendWith;")
       .containing("@ExtendWith(PulsarTestContainerExtension.class)")
       .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/config/pulsar",
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/wire/pulsar/infrastructure/config",
         "PulsarProperties.java",
         "PulsarConfiguration.java"
       )
-      .createFiles("src/test/java/com/jhipster/test/technical/infrastructure/config/pulsar/PulsarConfigurationIT.java");
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/wire/pulsar/infrastructure/config/PulsarConfigurationIT.java")
+      .hasFile("README.md")
+      .containing(
+        """
+        ```bash
+        docker compose -f src/main/docker/pulsar.yml up -d
+        ```
+        """
+      );
   }
 
   private ModuleFile integrationTestAnnotation() {
-    return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/com/jhipster/test/IntegrationTest.java");
+    return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/tech/jhipster/jhlitest/IntegrationTest.java");
   }
 }

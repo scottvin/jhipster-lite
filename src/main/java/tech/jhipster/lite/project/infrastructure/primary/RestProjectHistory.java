@@ -6,7 +6,7 @@ import java.util.Map;
 import tech.jhipster.lite.project.domain.history.ProjectHistory;
 
 @Schema(name = "ProjectHistory", description = "Information on the JHipster project history")
-class RestProjectHistory {
+final class RestProjectHistory {
 
   private final Collection<RestAppliedModule> modules;
   private final Map<String, Object> properties;

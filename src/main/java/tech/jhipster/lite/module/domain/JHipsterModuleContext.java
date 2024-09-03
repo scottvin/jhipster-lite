@@ -2,37 +2,30 @@ package tech.jhipster.lite.module.domain;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.module.domain.javabuild.JavaBuildTool;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleContext {
-
-  private static final Logger log = LoggerFactory.getLogger(JHipsterModuleContext.class);
+public final class JHipsterModuleContext {
 
   private final Map<String, Object> context;
-  private final Indentation indentation;
 
-  private JHipsterModuleContext(JHipsterModuleContextBuilder builder) {
-    context = JHipsterCollections.immutable(builder.context);
-    indentation = loadIndentation();
+  private JHipsterModuleContext(Map<String, Object> context) {
+    this.context = JHipsterCollections.immutable(context);
   }
 
-  private Indentation loadIndentation() {
-    Object contextIndentation = context.get(JHipsterModuleProperties.INDENTATION_PROPERTY);
-
-    if (contextIndentation instanceof Integer integerIndentation) {
-      return Indentation.from(integerIndentation);
-    }
-
-    log.info("Context contains an invalid indentation, using default");
-    return Indentation.DEFAULT;
+  public static JHipsterModuleContext empty() {
+    return new JHipsterModuleContext(new HashMap<>());
   }
 
-  static JHipsterModuleContextBuilder builder(JHipsterModuleBuilder module) {
+  public JHipsterModuleContext withJavaBuildTool(JavaBuildTool javaBuildTool) {
+    Map<String, Object> additionalValues = Map.of(JHipsterModuleProperties.PROJECT_BUILD_DIRECTORY, javaBuildTool.buildDirectory().get());
+    return new JHipsterModuleContext(JHipsterCollections.concat(context, additionalValues));
+  }
+
+  public static JHipsterModuleContextBuilder builder(JHipsterModuleBuilder module) {
     return new JHipsterModuleContextBuilder(module);
   }
 
@@ -40,11 +33,7 @@ public class JHipsterModuleContext {
     return context;
   }
 
-  public Indentation indentation() {
-    return indentation;
-  }
-
-  public static class JHipsterModuleContextBuilder {
+  public static final class JHipsterModuleContextBuilder {
 
     private final JHipsterModuleBuilder module;
     private final Map<String, Object> context;
@@ -57,13 +46,16 @@ public class JHipsterModuleContext {
     }
 
     private Map<String, Object> initialContext(JHipsterModuleProperties properties) {
-      HashMap<String, Object> init = new HashMap<>();
+      Map<String, Object> init = new HashMap<>();
 
-      init.put(JHipsterModuleProperties.PROJECT_BASE_NAME_PROPERTY, properties.projectBaseName().get());
-      init.put(JHipsterModuleProperties.PROJECT_NAME_PROPERTY, properties.projectName().get());
-      init.put(JHipsterModuleProperties.BASE_PACKAGE_PROPERTY, properties.basePackage().get());
-      init.put(JHipsterModuleProperties.SERVER_PORT_PROPERTY, properties.serverPort().get());
-      init.put(JHipsterModuleProperties.INDENTATION_PROPERTY, properties.indentation().spacesCount());
+      init.put(JHipsterModuleProperties.PROJECT_BASE_NAME_PARAMETER, properties.projectBaseName().get());
+      init.put(JHipsterModuleProperties.PROJECT_NAME_PARAMETER, properties.projectName().get());
+      init.put(JHipsterModuleProperties.BASE_PACKAGE_PARAMETER, properties.basePackage().get());
+      init.put(JHipsterModuleProperties.SERVER_PORT_PARAMETER, properties.serverPort().get());
+      init.put(JHipsterModuleProperties.INDENTATION_PARAMETER, properties.indentation().spacesCount());
+      init.put(JHipsterModuleProperties.JAVA_VERSION, properties.javaVersion().get());
+      init.put(JHipsterModuleProperties.PROJECT_BUILD_DIRECTORY, JavaBuildTool.MAVEN.buildDirectory().get());
+      init.put(JHipsterModuleProperties.SPRING_CONFIGURATION_FORMAT, properties.springConfigurationFormat().get());
 
       return init;
     }
@@ -78,7 +70,7 @@ public class JHipsterModuleContext {
     }
 
     public JHipsterModuleContext build() {
-      return new JHipsterModuleContext(this);
+      return new JHipsterModuleContext(this.context);
     }
 
     public JHipsterModuleBuilder and() {

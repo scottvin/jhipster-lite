@@ -1,4 +1,4 @@
-package {{packageName}}.dummy.infrastructure.primary.kafka.consumer;
+package {{packageName}}.sample.infrastructure.primary.kafka.consumer;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractConsumer<T> implements Runnable {
 
-  private final Logger log = LoggerFactory.getLogger(AbstractConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(AbstractConsumer.class);
 
   private final AtomicBoolean closed = new AtomicBoolean(false);
 

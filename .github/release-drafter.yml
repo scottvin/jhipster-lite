@@ -24,6 +24,9 @@ categories:
   - title: 🐞 Bug Fixes
     labels:
       - 'area: bug :bug:'
+  - title: 🚨 Breaking changes
+    labels:
+      - 'area: breaking change'
   - title: 🖥️ Frontend
     labels:
       - 'client: angular'
@@ -42,10 +45,12 @@ categories:
     labels:
       - 'theme: gradle'
   - title: 📝 Documentation
-    label: 'area: documentation:books:'
+    label: 'area: documentation :books:'
+  - title: 🗑 Remove modules
+    label: 'area: remove'
+  - title: 💩 Invalid
+    labels:
+      - 'area: invalid'
+      - 'area: spam'
   - title: 📦 Dependency updates
     label: 'area: dependencies'
-  - title: 💩 Spam/Invalid
-    labels:
-      - 'area: spam'
-      - 'area: invalid'

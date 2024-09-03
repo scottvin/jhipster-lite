@@ -5,6 +5,6 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
-  "files": ["src/main/webapp/main.ts", "src/main/webapp/polyfills.ts"],
+  "files": ["src/main/webapp/main.ts"],
   "include": ["src/main/webapp/**/*.d.ts"]
 }

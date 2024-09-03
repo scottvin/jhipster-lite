@@ -14,8 +14,7 @@ public final class SpringCloudModuleDependencies {
   private SpringCloudModuleDependencies() {}
 
   public static JavaDependency springCloudDependenciesManagement() {
-    return JavaDependency
-      .builder()
+    return JavaDependency.builder()
       .groupId(SPRING_CLOUD_GROUP)
       .artifactId("spring-cloud-dependencies")
       .versionSlug("spring-cloud.version")

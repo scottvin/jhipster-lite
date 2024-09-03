@@ -3,12 +3,13 @@ package {{packageName}}.account.infrastructure.primary;
 import java.util.Collection;
 
 import {{packageName}}.account.domain.Account;
-import {{packageName}}.authentication.domain.Role;
+import {{packageName}}.shared.authentication.domain.Role;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
 @Schema(name = "user", description = "Information for an user")
-class RestAccount {
+final class RestAccount {
 
   private final String username;
   private final String name;
@@ -23,31 +24,25 @@ class RestAccount {
   }
 
   static RestAccount from(Account account) {
-    return new RestAccountBuilder().username(account.username()
-        .get())
-        .name(account.name()
-            .get())
-        .email(account.email()
-            .get())
-        .roles(account.roles()
-            .get()
-            .stream()
-            .map(Role::key)
-            .toList())
-        .build();
+    return new RestAccountBuilder()
+      .username(account.username().get())
+      .name(account.name().get())
+      .email(account.email().get())
+      .roles(account.roles().get().stream().map(Role::key).toList())
+      .build();
   }
 
-  @Schema(description = "Username of this user", required = true)
+  @Schema(description = "Username of this user", requiredMode = RequiredMode.REQUIRED)
   public String getUsername() {
     return username;
   }
 
-  @Schema(description = "Fullname (Firstname LASTNAME) of this user", required = true)
+  @Schema(description = "Fullname (Firstname LASTNAME) of this user", requiredMode = RequiredMode.REQUIRED)
   public String getName() {
     return name;
   }
 
-  @Schema(description = "Email of this user", required = true)
+  @Schema(description = "Email of this user", requiredMode = RequiredMode.REQUIRED)
   public String getEmail() {
     return email;
   }

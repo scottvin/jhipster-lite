@@ -2,17 +2,17 @@ package tech.jhipster.lite.generator.server.springboot.logging.logstash.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
-import tech.jhipster.lite.module.domain.JHipsterSource;
 import tech.jhipster.lite.module.domain.LogLevel;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class LogstashModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/logging/logstash");
 
-  private static final String LOGSTASH_SECONDARY = "technical/infrastructure/secondary/logstash";
+  private static final String LOGSTASH_SECONDARY = "wire/logstash/infrastructure/secondary";
 
   public JHipsterModule buildModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
@@ -38,10 +38,10 @@ public class LogstashModuleFactory {
           .and()
         .and()
       .springMainProperties()
-        .set(propertyKey("application.logging.logstash.tcp.enabled"), propertyValue("false"))
+        .set(propertyKey("application.logging.logstash.tcp.enabled"), propertyValue(false))
         .set(propertyKey("application.logging.logstash.tcp.host"), propertyValue("localhost"))
-        .set(propertyKey("application.logging.logstash.tcp.port"), propertyValue("5000"))
-        .set(propertyKey("application.logging.logstash.tcp.ring-buffer-size"), propertyValue("8192"))
+        .set(propertyKey("application.logging.logstash.tcp.port"), propertyValue(5000))
+        .set(propertyKey("application.logging.logstash.tcp.ring-buffer-size"), propertyValue(8192))
         .set(propertyKey("application.logging.logstash.tcp.shutdown_grace_period"), propertyValue("PT1M"))
         .and()
       .springTestLogger("net.logstash.logback", LogLevel.ERROR)

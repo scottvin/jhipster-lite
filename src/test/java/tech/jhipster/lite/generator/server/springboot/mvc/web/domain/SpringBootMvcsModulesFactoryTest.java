@@ -8,7 +8,6 @@ import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
-import tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.ModuleAsserter;
 
 @UnitTest
 class SpringBootMvcsModulesFactoryTest {
@@ -17,22 +16,21 @@ class SpringBootMvcsModulesFactoryTest {
 
   @Test
   void shouldBuildTomcatMvcModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .put("serverPort", 9000)
       .build();
 
     JHipsterModule module = factory.buildTomcatModule(properties);
 
     assertMvcModule(module)
-      .createFile("src/main/resources/logback-spring.xml")
+      .hasFile("src/main/resources/logback-spring.xml")
       .containing("  <logger name=\"org.springframework.web\" level=\"ERROR\" />")
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("  <logger name=\"org.springframework.web\" level=\"ERROR\" />")
       .and()
-      .createFile("pom.xml")
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -40,27 +38,36 @@ class SpringBootMvcsModulesFactoryTest {
               <artifactId>spring-boot-starter-web</artifactId>
             </dependency>
         """
+      )
+      .containing(
+        """
+            <dependency>
+              <groupId>org.reflections</groupId>
+              <artifactId>reflections</artifactId>
+              <version>${reflections.version}</version>
+              <scope>test</scope>
+            </dependency>
+        """
       );
   }
 
   @Test
   void shouldBuildUndertowModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
-      .basePackage("com.jhipster.test")
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .basePackage("tech.jhipster.jhlitest")
       .put("serverPort", 9000)
       .build();
 
-    JHipsterModule module = factory.buildUntertowModule(properties);
+    JHipsterModule module = factory.buildUndertowModule(properties);
 
     assertMvcModule(module)
-      .createFile("src/main/resources/logback-spring.xml")
+      .hasFile("src/main/resources/logback-spring.xml")
       .containing("  <logger name=\"io.undertow\" level=\"WARN\" />")
       .and()
-      .createFile("src/test/resources/logback.xml")
+      .hasFile("src/test/resources/logback.xml")
       .containing("  <logger name=\"io.undertow\" level=\"WARN\" />")
       .and()
-      .createFile("pom.xml")
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>
@@ -85,23 +92,51 @@ class SpringBootMvcsModulesFactoryTest {
       );
   }
 
-  private ModuleAsserter assertMvcModule(JHipsterModule module) {
-    return assertThatModuleWithFiles(module, pomFile(), lockbackFile(), testLockbackFile())
-      .createFiles("documentation/cors-configuration.md")
-      .createFile("src/main/resources/config/application.properties")
-      .containing("server.port=9000")
+  private JHipsterModuleAsserter assertMvcModule(JHipsterModule module) {
+    return assertThatModuleWithFiles(module, pomFile(), logbackFile(), testLogbackFile(), readmeFile())
+      .hasFile("README.md")
+      .containing("- [Local server](http://localhost:9000)")
       .and()
-      .createFile("src/test/resources/config/application.properties")
-      .containing("server.port=0")
+      .hasFiles("documentation/cors-configuration.md")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        server:
+          port: 9000
+        """
+      )
       .and()
-      .createPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/primary/cors",
+      .hasFile("src/main/resources/public/error/404.html")
+      .and()
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        server:
+          port: 0
+        """
+      )
+      .and()
+      .hasPrefixedFiles(
+        "src/main/java/tech/jhipster/jhlitest/wire/security/infrastructure/primary",
         "CorsFilterConfiguration.java",
         "CorsProperties.java"
       )
-      .createFiles("src/test/java/com/jhipster/test/technical/infrastructure/primary/cors/CorsFilterConfigurationIT.java")
-      .createFiles("src/test/java/com/jhipster/test/JsonHelper.java")
-      .createFile("pom.xml")
+      .hasFiles("src/main/java/tech/jhipster/jhlitest/wire/security/package-info.java")
+      .hasPrefixedFiles("src/test/java/tech/jhipster/jhlitest", "BeanValidationAssertions.java", "BeanValidationTest.java")
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/wire/security/infrastructure/primary/CorsFilterConfigurationIT.java")
+      .hasFiles("src/test/java/tech/jhipster/jhlitest/JsonHelper.java")
+      .hasFiles("src/main/java/tech/jhipster/jhlitest/shared/error/infrastructure/primary/BeanValidationErrorsHandler.java")
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/shared/error/infrastructure/primary",
+        "BeanValidationErrorsHandlerTest.java",
+        "BeanValidationErrorsHandlerIT.java"
+      )
+      .hasPrefixedFiles(
+        "src/test/java/tech/jhipster/jhlitest/shared/error_generator/infrastructure/primary",
+        "BeanValidationErrorsResource.java",
+        "RestMandatoryParameter.java"
+      )
+      .hasFile("pom.xml")
       .containing(
         """
             <dependency>

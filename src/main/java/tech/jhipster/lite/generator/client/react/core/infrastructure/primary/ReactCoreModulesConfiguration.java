@@ -1,11 +1,14 @@
 package tech.jhipster.lite.generator.client.react.core.infrastructure.primary;
 
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import tech.jhipster.lite.generator.client.react.core.application.ReactCoreApplicationService;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleApiDoc;
-import tech.jhipster.lite.module.infrastructure.primary.JHipsterModuleResource;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 
 @Configuration
 class ReactCoreModulesConfiguration {
@@ -13,15 +16,14 @@ class ReactCoreModulesConfiguration {
   public static final String REACT = "react";
 
   @Bean
-  JHipsterModuleResource styledReactCoreModule(ReactCoreApplicationService react) {
-    return JHipsterModuleResource
-      .builder()
-      .legacyUrl("/api/clients/react/styles")
-      .slug("react-styled")
+  JHipsterModuleResource reactCoreModule(ReactCoreApplicationService react) {
+    return JHipsterModuleResource.builder()
+      .slug(REACT_CORE)
       .propertiesDefinition(properties())
-      .apiDoc(new JHipsterModuleApiDoc("React", "Add React+Vite with minimal CSS"))
+      .apiDoc("Frontend - React", "Add React+Vite with minimal CSS")
+      .organization(JHipsterModuleOrganization.builder().feature(CLIENT_CORE).addDependency(INIT).addDependency(PRETTIER).build())
       .tags("client", REACT)
-      .factory(react::buildModuleWithStyle);
+      .factory(react::buildModule);
   }
 
   private JHipsterModulePropertiesDefinition properties() {

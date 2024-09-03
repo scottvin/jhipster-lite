@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.secondary.logstash;
+package {{packageName}}.wire.logstash.infrastructure.secondary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,7 +37,7 @@ class LogstashTcpConfigurationIT {
   class Enabled {
 
     @Autowired
-    ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
     @Test
     void shouldEnableLogstash() {
@@ -72,7 +72,7 @@ class LogstashTcpConfigurationIT {
   class Disabled {
 
     @Autowired
-    ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
 
     @Test
     void shouldDisableLogstash() {

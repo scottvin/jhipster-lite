@@ -2,22 +2,23 @@ package tech.jhipster.lite.project.domain.history;
 
 import java.time.Instant;
 import java.util.Map;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.project.domain.ModuleSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class ProjectAction {
+public final class ProjectAction {
 
   private final ModuleSlug module;
   private final Instant date;
-  private final ModuleProperties properties;
+  private final ModuleParameters parameters;
 
   private ProjectAction(ProjectActionBuilder builder) {
     Assert.notNull("module", builder.module);
     Assert.notNull("date", builder.date);
-    Assert.notNull("properties", builder.properties);
+    Assert.notNull("parameters", builder.parameters);
 
     module = builder.module;
     date = builder.date;
-    properties = builder.properties;
+    parameters = builder.parameters;
   }
 
   public static ProjectActionModuleBuilder builder() {
@@ -32,15 +33,16 @@ public class ProjectAction {
     return date;
   }
 
-  public ModuleProperties properties() {
-    return properties;
+  public ModuleParameters parameters() {
+    return parameters;
   }
 
-  public static class ProjectActionBuilder implements ProjectActionModuleBuilder, ProjectActionDateBuilder, ProjectActionPropertiesBuilder {
+  private static final class ProjectActionBuilder
+    implements ProjectActionModuleBuilder, ProjectActionDateBuilder, ProjectActionParametersBuilder {
 
     private ModuleSlug module;
     private Instant date;
-    private ModuleProperties properties;
+    private ModuleParameters parameters;
 
     @Override
     public ProjectActionDateBuilder module(ModuleSlug module) {
@@ -50,15 +52,15 @@ public class ProjectAction {
     }
 
     @Override
-    public ProjectActionPropertiesBuilder date(Instant date) {
+    public ProjectActionParametersBuilder date(Instant date) {
       this.date = date;
 
       return this;
     }
 
     @Override
-    public ProjectAction properties(ModuleProperties properties) {
-      this.properties = properties;
+    public ProjectAction parameters(ModuleParameters properties) {
+      this.parameters = properties;
 
       return new ProjectAction(this);
     }
@@ -73,14 +75,14 @@ public class ProjectAction {
   }
 
   public interface ProjectActionDateBuilder {
-    ProjectActionPropertiesBuilder date(Instant date);
+    ProjectActionParametersBuilder date(Instant date);
   }
 
-  public interface ProjectActionPropertiesBuilder {
-    ProjectAction properties(ModuleProperties properties);
+  public interface ProjectActionParametersBuilder {
+    ProjectAction parameters(ModuleParameters properties);
 
-    default ProjectAction properties(Map<String, Object> properties) {
-      return properties(new ModuleProperties(properties));
+    default ProjectAction parameters(Map<String, Object> properties) {
+      return parameters(new ModuleParameters(properties));
     }
   }
 }

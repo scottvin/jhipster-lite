@@ -1,10 +1,10 @@
 package {{packageName}}.account.domain;
 
-import {{packageName}}.authentication.domain.Roles;
-import {{packageName}}.authentication.domain.Username;
-import {{packageName}}.error.domain.Assert;
+import {{packageName}}.shared.authentication.domain.Roles;
+import {{packageName}}.shared.authentication.domain.Username;
+import {{packageName}}.shared.error.domain.Assert;
 
-public class AuthenticationQuery {
+public final class AuthenticationQuery {
 
   private final Username username;
   private final Roles roles;
@@ -35,7 +35,7 @@ public class AuthenticationQuery {
     return rememberMe;
   }
 
-  public static class AuthenticationQueryBuilder
+  private static final class AuthenticationQueryBuilder
     implements AuthenticationQueryUsernameBuilder, AuthenticationQueryRolesBuilder, AuthenticationQueryRememberMeBuilder {
 
     private Username username;

@@ -1,3 +1,6 @@
-module.exports = {
-  '{,src/**/,webpack/}*.{md,json,yml,html,js,ts,tsx,css,scss,vue,java,xml}': ['prettier --write'],
+export default {
+  '*.{js,cjs,ts,tsx,vue}': ['eslint --fix', 'prettier --write'],
+  '*.{css,scss}': ['stylelint --fix', 'prettier --write'],
+  '*.pug': ['eslint --fix', 'prettier --write'],
+  '*.{md,json,yml,html,java,xml,feature,sh}': ['prettier --write'],
 };

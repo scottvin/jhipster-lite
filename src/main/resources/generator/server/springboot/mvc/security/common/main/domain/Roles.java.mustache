@@ -1,16 +1,15 @@
-package {{packageName}}.authentication.domain;
+package {{packageName}}.shared.authentication.domain;
 
-import {{packageName}}.common.domain.{{applicationName}}Collections;
-import {{packageName}}.error.domain.Assert;
 import java.util.Set;
 import java.util.stream.Stream;
+import {{packageName}}.shared.collection.domain.{{ baseName }}Collections;
+import {{packageName}}.shared.error.domain.Assert;
 
 public record Roles(Set<Role> roles) {
-
   public static final Roles EMPTY = new Roles(null);
-  
+
   public Roles(Set<Role> roles) {
-    this.roles = {{applicationName}}Collections.immutable(roles);
+    this.roles = {{ baseName }}Collections.immutable(roles);
   }
 
   public boolean hasRole() {
@@ -22,7 +21,7 @@ public record Roles(Set<Role> roles) {
 
     return roles.contains(role);
   }
-  
+
   public Stream<Role> stream() {
     return get().stream();
   }

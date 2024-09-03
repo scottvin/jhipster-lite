@@ -2,28 +2,24 @@ package tech.jhipster.lite.module.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
+import tech.jhipster.lite.module.domain.replacement.TextNeedleAfterReplacer;
 import tech.jhipster.lite.module.domain.replacement.TextNeedleBeforeReplacer;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 final class JHipsterModuleShortcuts {
 
-  private static final String README = "README.md";
+  private static final JHipsterProjectFilePath README = path("README.md");
   private static final TextNeedleBeforeReplacer JHIPSTER_DOCUMENTATION_NEEDLE = lineBeforeText("\n<!-- jhipster-needle-documentation -->");
-  private static final TextNeedleBeforeReplacer JHIPSTER_README_SECTION_NEEDLE = lineBeforeText("\n<!-- jhipster-needle-readme -->");
-  private static final TextNeedleBeforeReplacer JHIPSTER_STARTUP_COMMAND_SECTION_NEEDLE = lineBeforeText(
-    "\n<!-- jhipster-needle-startupCommand -->"
+  private static final TextNeedleBeforeReplacer JHIPSTER_LOCAL_ENVIRONMENT_NEEDLE = lineBeforeText(
+    "\n<!-- jhipster-needle-localEnvironment -->"
   );
 
-  private static final String SPRING_MAIN_LOG_FILE = "src/main/resources/logback-spring.xml";
-  private static final String SPRING_TEST_LOG_FILE = "src/test/resources/logback.xml";
-  private static final TextNeedleBeforeReplacer JHIPSTER_LOGGER_NEEDLE = lineBeforeText("<!-- jhipster-needle-logback-add-log -->");
+  private static final TextNeedleAfterReplacer JHIPSTER_PREREQUISITES = lineAfterText("\n## Prerequisites");
 
-  private static final String BASH_TEMPLATE = """
-    ```bash
-    {{command}}
-    ```
-    """;
+  private static final JHipsterProjectFilePath SPRING_MAIN_LOG_FILE = path("src/main/resources/logback-spring.xml");
+  private static final JHipsterProjectFilePath SPRING_TEST_LOG_FILE = path("src/test/resources/logback.xml");
+  private static final TextNeedleBeforeReplacer JHIPSTER_LOGGER_NEEDLE = lineBeforeText("<!-- jhipster-needle-logback-add-log -->");
 
   private final JHipsterModuleBuilder builder;
 
@@ -44,18 +40,15 @@ final class JHipsterModuleShortcuts {
     builder.optionalReplacements().in(README).add(JHIPSTER_DOCUMENTATION_NEEDLE, markdownLink);
   }
 
-  void readmeSection(String section) {
-    Assert.notBlank("section", section);
+  void localEnvironment(LocalEnvironment localEnvironment) {
+    Assert.notNull("localEnvironment", localEnvironment);
 
-    builder.optionalReplacements().in(README).add(JHIPSTER_README_SECTION_NEEDLE, section);
+    builder.optionalReplacements().in(README).add(JHIPSTER_LOCAL_ENVIRONMENT_NEEDLE, localEnvironment.get());
   }
 
-  void startupCommand(String startupCommand) {
-    Assert.notBlank("startupCommand", startupCommand);
-    builder
-      .optionalReplacements()
-      .in(README)
-      .add(JHIPSTER_STARTUP_COMMAND_SECTION_NEEDLE, BASH_TEMPLATE.replace("{{command}}", startupCommand));
+  void prerequisites(String prerequisites) {
+    Assert.notBlank("prerequisites", prerequisites);
+    builder.optionalReplacements().in(README).add(JHIPSTER_PREREQUISITES, prerequisites);
   }
 
   void springTestLogger(String name, LogLevel level) {
@@ -88,7 +81,7 @@ final class JHipsterModuleShortcuts {
 
     builder
       .mandatoryReplacements()
-      .in("src/test/java/" + builder.packagePath() + "/IntegrationTest.java")
+      .in(path("src/test/java").append(builder.packagePath()).append("IntegrationTest.java"))
       .add(
         lineBeforeText("import org.springframework.boot.test.context.SpringBootTest;"),
         "import org.junit.jupiter.api.extension.ExtendWith;"

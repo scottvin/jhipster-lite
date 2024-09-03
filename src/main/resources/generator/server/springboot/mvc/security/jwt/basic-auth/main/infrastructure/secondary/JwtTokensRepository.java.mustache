@@ -1,12 +1,6 @@
 package {{packageName}}.account.infrastructure.secondary;
 
-import {{packageName}}.account.domain.AuthenticationQuery;
-import {{packageName}}.account.domain.Token;
-import {{packageName}}.account.domain.TokensRepository;
-import {{packageName}}.authentication.domain.Role;
-import {{packageName}}.error.domain.Assert;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -14,6 +8,11 @@ import java.util.Date;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Repository;
+import {{packageName}}.account.domain.AuthenticationQuery;
+import {{packageName}}.account.domain.Token;
+import {{packageName}}.account.domain.TokensRepository;
+import {{packageName}}.shared.authentication.domain.Role;
+import {{packageName}}.shared.error.domain.Assert;
 
 @Repository
 class JwtTokensRepository implements TokensRepository {
@@ -31,12 +30,11 @@ class JwtTokensRepository implements TokensRepository {
   public Token buildToken(AuthenticationQuery query) {
     Assert.notNull("query", query);
 
-    String token = Jwts
-      .builder()
-      .setSubject(query.username().get())
+    String token = Jwts.builder()
+      .subject(query.username().get())
       .claim("auth", buildAuthorities(query))
-      .signWith(key, SignatureAlgorithm.HS512)
-      .setExpiration(getValidity(query))
+      .signWith(key, Jwts.SIG.HS512)
+      .expiration(getValidity(query))
       .compact();
 
     return new Token(token);

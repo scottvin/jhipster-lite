@@ -1,10 +1,10 @@
-package {{packageName}}.authentication.domain;
+package {{packageName}}.shared.authentication.domain;
 
 import static org.assertj.core.api.Assertions.*;
 
-import {{packageName}}.UnitTest;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import {{packageName}}.UnitTest;
 
 @UnitTest
 class RolesTest {
@@ -28,7 +28,7 @@ class RolesTest {
   void shouldHaveAffectedRole() {
     assertThat(new Roles(Set.of(Role.ADMIN)).hasRole(Role.ADMIN)).isTrue();
   }
-  
+
   @Test
   void shouldStreamRoles() {
     assertThat(new Roles(Set.of(Role.ADMIN)).stream()).containsExactly(Role.ADMIN);

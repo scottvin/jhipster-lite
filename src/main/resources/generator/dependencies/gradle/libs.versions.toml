@@ -1,0 +1,27 @@
+[versions]
+checkstyle = "10.18.1"
+jib = "3.4.3"
+git-properties = "2.4.2"
+protobuf-plugin = "0.9.4"
+jacoco = "0.8.11"
+sonarqube = "4.4.1.3373"
+node-gradle = "7.0.2"
+
+[libraries]
+[libraries.checkstyle]
+group = "com.puppycrawl.tools"
+name = "checkstyle"
+version.ref = "checkstyle"
+
+[plugins]
+[plugins.jib]
+id = "com.google.cloud.tools.jib"
+version.ref = "jib"
+
+[plugins.git-properties]
+id = "com.gorylenko.gradle-git-properties"
+version.ref = "git-properties"
+
+[plugins.protobuf]
+id = "com.google.protobuf"
+version.ref = "protobuf-plugin"

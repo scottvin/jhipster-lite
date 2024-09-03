@@ -1,9 +1,11 @@
 package tech.jhipster.lite.module.infrastructure.primary;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Collection;
-import tech.jhipster.lite.module.domain.properties.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
 
-class RestJHipsterModulePropertiesDefinition {
+@Schema(name = "JHipsterModulePropertiesDefinition", description = "Definition for module properties")
+final class RestJHipsterModulePropertiesDefinition {
 
   private final Collection<RestJHipsterModulePropertyDefinition> definitions;
 
@@ -17,6 +19,7 @@ class RestJHipsterModulePropertiesDefinition {
     );
   }
 
+  @Schema(description = "Definition of the properties for a module")
   public Collection<RestJHipsterModulePropertyDefinition> getDefinitions() {
     return definitions;
   }

@@ -1,7 +1,6 @@
 package tech.jhipster.lite.project.domain.download;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
@@ -14,7 +13,7 @@ import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.project.domain.ProjectPath;
 import tech.jhipster.lite.project.domain.ProjectsRepository;
 import tech.jhipster.lite.project.domain.UnknownProjectException;
-import tech.jhipster.lite.projectfolder.domain.ProjectFolder;
+import tech.jhipster.lite.shared.projectfolder.domain.ProjectFolder;
 
 @UnitTest
 @ExtendWith(MockitoExtension.class)
@@ -37,12 +36,12 @@ class ProjectsDownloaderTest {
   }
 
   @Test
-  void shouldNotDownloadUnknownProjecr() {
+  void shouldNotDownloadUnknownProject() {
     assertThatThrownBy(() -> downloader.download(new ProjectPath("unknown"))).isExactlyInstanceOf(UnknownProjectException.class);
   }
 
   @Test
-  void shouldDownloadPorjectFromRepository() {
+  void shouldDownloadProjectFromRepository() {
     Project project = new Project(new ProjectName("project"), new byte[] {});
     when(projects.get(any())).thenReturn(Optional.of(project));
 

@@ -2,10 +2,10 @@ package tech.jhipster.lite.module.domain;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModulePreActions {
+public final class JHipsterModulePreActions {
 
   private final Collection<Runnable> actions;
 
@@ -21,7 +21,7 @@ public class JHipsterModulePreActions {
     actions.forEach(Runnable::run);
   }
 
-  public static class JHipsterModulePreActionsBuilder {
+  public static final class JHipsterModulePreActionsBuilder {
 
     private final JHipsterModuleBuilder module;
     private final Collection<Runnable> actions = new ArrayList<>();

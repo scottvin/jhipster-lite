@@ -2,6 +2,8 @@ package tech.jhipster.lite.module.domain.properties;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +15,9 @@ import tech.jhipster.lite.module.domain.Indentation;
 
 @UnitTest
 class JHipsterModulePropertiesTest {
+
+  private final Instant today = Instant.now();
+  private final Instant yesterday = Instant.now().minus(1, ChronoUnit.DAYS);
 
   @Nested
   @DisplayName("Mandatory String")
@@ -48,6 +53,11 @@ class JHipsterModulePropertiesTest {
     @ValueSource(strings = { "boolean", "integer" })
     void shouldNotGetInvalidType(String key) {
       assertThatThrownBy(() -> properties().getOrDefaultString(key, "default")).isExactlyInstanceOf(InvalidPropertyTypeException.class);
+    }
+
+    @Test
+    void shouldGetDefaultForBlankValue() {
+      assertThat(properties().getOrDefaultString("blank", "default")).isEqualTo("default");
     }
 
     @Test
@@ -140,6 +150,27 @@ class JHipsterModulePropertiesTest {
     }
   }
 
+  @Nested
+  @DisplayName("Instant")
+  class JHipsterModulePropertiesInstantTest {
+
+    @ParameterizedTest
+    @ValueSource(strings = { "string", "boolean", "integer" })
+    void shouldNotGetInvalidType(String key) {
+      assertThatThrownBy(() -> properties().getInstantOrDefault(key, today)).isExactlyInstanceOf(InvalidPropertyTypeException.class);
+    }
+
+    @Test
+    void shouldGetProperty() {
+      assertThat(properties().getInstantOrDefault("instant", yesterday)).isEqualTo(today);
+    }
+
+    @Test
+    void shouldGetUnknownProperty() {
+      assertThat(properties().getInstantOrDefault("unknown", yesterday)).isEqualTo(yesterday);
+    }
+  }
+
   @Test
   void shouldGetDefaultProjectProperties() {
     JHipsterModuleProperties properties = properties();
@@ -150,7 +181,19 @@ class JHipsterModulePropertiesTest {
     assertThat(properties.projectBaseName()).isEqualTo(JHipsterProjectBaseName.DEFAULT);
   }
 
+  @Test
+  void testToStringShowsProjectName() {
+    //Given
+    JHipsterModuleProperties properties = properties();
+    //When Then
+    assertThat(properties).hasToString(properties.projectName().toString());
+  }
+
   private JHipsterModuleProperties properties() {
-    return new JHipsterModuleProperties("/tmp/folder", false, Map.of("string", "value", "boolean", true, "integer", 42));
+    return new JHipsterModuleProperties(
+      "/tmp/folder",
+      false,
+      Map.of("string", "value", "boolean", true, "integer", 42, "blank", " ", "instant", today.toString())
+    );
   }
 }

@@ -39,18 +39,23 @@ class RegexNeedleBeforeReplacerTest {
 
     String updatedContent = replacer
       .replacement()
-      .apply("""
-            <root>
-            <!-- needle !-->
-            </root>
-            """, "<element />");
-
-    assertThat(updatedContent).isEqualTo("""
+      .apply(
+        """
         <root>
-        <element />
         <!-- needle !-->
         </root>
-        """);
+        """,
+        "<element />"
+      );
+
+    assertThat(updatedContent).isEqualTo(
+      """
+      <root>
+      <element />
+      <!-- needle !-->
+      </root>
+      """
+    );
   }
 
   @Test
@@ -61,27 +66,26 @@ class RegexNeedleBeforeReplacerTest {
       .replacement()
       .apply(
         """
-            <root>
-              <!-- needle !-->
+        <root>
+          <!-- needle !-->
 
-              <!-- needle !-->
-            </root>
-            """,
+          <!-- needle !-->
+        </root>
+        """,
         "<element />"
       );
 
-    assertThat(updatedContent)
-      .isEqualTo(
-        """
-        <root>
-        <element />
-          <!-- needle !-->
+    assertThat(updatedContent).isEqualTo(
+      """
+      <root>
+      <element />
+        <!-- needle !-->
 
-        <element />
-          <!-- needle !-->
-        </root>
-        """
-      );
+      <element />
+        <!-- needle !-->
+      </root>
+      """
+    );
   }
 
   @Test

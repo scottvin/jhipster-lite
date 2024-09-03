@@ -18,7 +18,11 @@ public class SpringBootDockerApplicationService {
     return factory.buildJibModule(properties);
   }
 
-  public JHipsterModule buildDockerFileModule(JHipsterModuleProperties properties) {
-    return factory.buildDockerFileModule(properties);
+  public JHipsterModule buildDockerFileMavenModule(JHipsterModuleProperties properties) {
+    return factory.buildDockerFileMavenModule(properties);
+  }
+
+  public JHipsterModule buildDockerFileGradleModule(JHipsterModuleProperties properties) {
+    return factory.buildDockerFileGradleModule(properties);
   }
 }

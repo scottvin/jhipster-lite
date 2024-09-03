@@ -2,10 +2,10 @@ package {{packageName}}.account.infrastructure.primary;
 
 import static org.assertj.core.api.Assertions.*;
 
-import {{packageName}}.JsonHelper;
-import {{packageName}}.UnitTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import {{packageName}}.JsonHelper;
+import {{packageName}}.UnitTest;
 
 @UnitTest
 class RestAuthenticationQueryTest {
@@ -20,11 +20,11 @@ class RestAuthenticationQueryTest {
 
   private String json() {
     return """
-        {
-          "username": "user",
-          "password": "password",
-          "rememberMe": true
-        }
-        """;
+    {
+      "username": "user",
+      "password": "password",
+      "rememberMe": true
+    }
+    """;
   }
 }

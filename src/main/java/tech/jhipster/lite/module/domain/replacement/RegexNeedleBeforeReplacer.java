@@ -2,8 +2,8 @@ package tech.jhipster.lite.module.domain.replacement;
 
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record RegexNeedleBeforeReplacer(ReplacementCondition condition, Pattern pattern) implements ElementReplacer {
   public RegexNeedleBeforeReplacer {
@@ -13,13 +13,19 @@ public record RegexNeedleBeforeReplacer(ReplacementCondition condition, Pattern 
 
   @Override
   public boolean notMatchIn(String content) {
-    return !pattern().matcher(content).find();
+    return !linePattern().matcher(content).find();
   }
 
   @Override
   public BiFunction<String, String, String> replacement() {
     return (content, replacement) ->
-      linePattern().matcher(content).replaceAll(result -> replacement + JHipsterModule.LINE_BREAK + result.group());
+      linePattern()
+        .matcher(content)
+        .replaceAll(result -> escapeSpecialCharacters(replacement) + JHipsterModule.LINE_BREAK + result.group());
+  }
+
+  private String escapeSpecialCharacters(String replacement) {
+    return replacement.replace("$", "\\$");
   }
 
   private Pattern linePattern() {

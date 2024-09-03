@@ -1,15 +1,22 @@
 package tech.jhipster.lite.module.domain.javabuild.command;
 
-import tech.jhipster.lite.error.domain.Assert;
+import java.util.Optional;
+import tech.jhipster.lite.module.domain.javabuildprofile.BuildProfileId;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public record AddDirectJavaDependency(JavaDependency dependency) implements JavaBuildCommand, AddJavaDependency {
+public record AddDirectJavaDependency(JavaDependency dependency, Optional<BuildProfileId> buildProfile)
+  implements JavaBuildCommand, AddJavaDependency {
   public AddDirectJavaDependency {
     Assert.notNull("dependency", dependency);
+    Assert.notNull("buildProfile", buildProfile);
   }
 
-  @Override
-  public JavaBuildCommandType type() {
-    return JavaBuildCommandType.ADD_DEPENDENCY;
+  public AddDirectJavaDependency(JavaDependency dependency) {
+    this(dependency, Optional.empty());
+  }
+
+  public AddDirectJavaDependency(JavaDependency dependency, BuildProfileId buildProfile) {
+    this(dependency, Optional.of(buildProfile));
   }
 }

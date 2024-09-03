@@ -13,43 +13,94 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jjwt.version>0.11.5</jjwt.version>
-    <logstash-logback-encoder.version>7.2</logstash-logback-encoder.version>
-    <problem-spring.version>0.27.0</problem-spring.version>
-    <spring-boot.version>2.7.2</spring-boot.version>
-    <spring-cloud.version>2021.0.0</spring-cloud.version>
-    <spring-cloud-netflix-eureka-client.version>3.1.3</spring-cloud-netflix-eureka-client.version>
-    <springdoc-openapi.version>1.6.9</springdoc-openapi.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
-    <kafka-clients.version>3.2.0</kafka-clients.version>
-    <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
+    <jhlite.version>@project.version@</jhlite.version>
+    <!-- Dependencies -->
+    <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+    <spring-boot.version>3.3.3</spring-boot.version>
+    <spring-cloud.version>2023.0.3</spring-cloud.version>
+    <spring-cloud-netflix-eureka-client.version>4.1.3</spring-cloud-netflix-eureka-client.version>
+    <springdoc-openapi-starter-webmvc.version>2.6.0</springdoc-openapi-starter-webmvc.version>
+    <springdoc-openapi-starter-webflux.version>2.6.0</springdoc-openapi-starter-webflux.version>
+    <kafka-clients.version>3.8.0</kafka-clients.version>
+    <mongock.version>5.4.4</mongock.version>
+    <neo4j-migrations.version>2.13.0</neo4j-migrations.version>
+    <pulsar.version>3.3.1</pulsar.version>
+    <liquibase.version>4.29.1</liquibase.version>
+    <reflections.version>0.10.2</reflections.version>
+    <json-web-token.version>0.12.6</json-web-token.version>
+    <commons-lang3.version>3.17.0</commons-lang3.version>
+    <ehcache.version>3.10.8</ehcache.version>
+    <thymeleaf-layout-dialect.version>3.3.0</thymeleaf-layout-dialect.version>
+    <webjars-locator.version>0.52</webjars-locator.version>
+    <htmx-webjars.version>2.0.2</htmx-webjars.version>
+    <alpinejs-webjars.version>3.14.1</alpinejs-webjars.version>
+    <protobuf.version>4.28.0</protobuf.version>
+    <proto-backwards-compatibility.version>1.0.7</proto-backwards-compatibility.version>
+    <jmolecules-bom.version>2023.1.4</jmolecules-bom.version>
+    <jqassistant.version>2.4.0</jqassistant.version>
+    <jqassistant-asciidoctorj-extensions.version>1.0.1</jqassistant-asciidoctorj-extensions.version>
+    <jqassistant-context-mapper-plugin.version>2.1.0-M2</jqassistant-context-mapper-plugin.version>
+    <jqassistant-jmolecules-plugin.version>2.1.0-M4</jqassistant-jmolecules-plugin.version>
+    <jqassistant-spring-plugin.version>2.2.0</jqassistant-spring-plugin.version>
+    <!-- Test dependencies -->
+    <junit-jupiter.version>5.11.0</junit-jupiter.version>
+    <assertj.version>3.26.3</assertj.version>
+    <mockito.version>5.13.0</mockito.version>
+    <cassandraunit.version>4.3.1.0</cassandraunit.version>
+    <testcontainers.version>1.20.1</testcontainers.version>
+    <archunit-junit5.version>1.3.0</archunit-junit5.version>
+    <cucumber.version>7.18.1</cucumber.version>
+    <approvaltests.version>24.4.0</approvaltests.version>
+    <jqwik.version>1.9.0</jqwik.version>
+    <!-- Maven Plugins -->
+    <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
+    <protobuf-maven-plugin.version>2.4.5</protobuf-maven-plugin.version>
+    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+    <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
+    <git-commit-id-plugin.version>9.0.1</git-commit-id-plugin.version>
+    <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>
     <checksum-maven-plugin.version>1.11</checksum-maven-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <properties-maven-plugin.version>1.1.0</properties-maven-plugin.version>
-    <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
-    <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
-    <jib-maven-plugin.version>3.2.1</jib-maven-plugin.version>
-    <flyway.version>8.5.13</flyway.version>
-    <mongock.version>5.0.41</mongock.version>
-    <archunit-junit5.version>0.23.1</archunit-junit5.version>
-    <cucumber.version>7.4.1</cucumber.version>
-    <testng.version>7.6.1</testng.version>
-    <pulsar.version>2.10.0</pulsar.version>
-    <liquibase.version>4.14.0</liquibase.version>
-    <compiler-plugin.version>3.10.1</compiler-plugin.version>
-    <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
-    <failsafe-plugin.version>3.0.0-M5</failsafe-plugin.version>
-    <jacoco.version>0.8.8</jacoco.version>
-    <reflections.version>0.10.2</reflections.version>
-    <json-web-token.version>0.11.5</json-web-token.version>
+    <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+    <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
+    <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+    <jib-maven-plugin.version>3.4.3</jib-maven-plugin.version>
+    <compiler-plugin.version>3.13.0</compiler-plugin.version>
+    <surefire-plugin.version>3.5.0</surefire-plugin.version>
+    <failsafe-plugin.version>3.5.0</failsafe-plugin.version>
+    <asciidoctor-maven-plugin.version>3.0.0</asciidoctor-maven-plugin.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>${jjwt.version}</version>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>${os-maven-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>net.logstash.logback</groupId>
@@ -58,8 +109,23 @@
       </dependency>
       <dependency>
         <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-ui</artifactId>
-        <version>${springdoc-openapi.version}</version>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc-openapi-starter-webmvc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+        <version>${springdoc-openapi-starter-webmvc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+        <version>${springdoc-openapi-starter-webflux.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webflux-api</artifactId>
+        <version>${springdoc-openapi-starter-webflux.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -70,6 +136,7 @@
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-dependencies</artifactId>
         <version>${spring-cloud.version}</version>
+        <type>pom</type>
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
@@ -80,11 +147,13 @@
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
         <version>${testcontainers.version}</version>
+        <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>org.zalando</groupId>
-        <artifactId>problem-spring-web</artifactId>
-        <version>${problem-spring.version}</version>
+        <groupId>io.mongock</groupId>
+        <artifactId>mongock-bom</artifactId>
+        <version>${mongock.version}</version>
+        <type>pom</type>
       </dependency>
       <dependency>
         <groupId>net.nicoulaj.maven.plugins</groupId>
@@ -122,9 +191,9 @@
         <version>${jib-maven-plugin.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-        <version>${flyway.version}</version>
+        <groupId>tech.jhipster.lite</groupId>
+        <artifactId>jhlite</artifactId>
+        <version>${jhlite.version}</version>
       </dependency>
       <dependency>
         <groupId>com.tngtech.archunit</groupId>
@@ -134,7 +203,7 @@
       </dependency>
       <dependency>
         <groupId>io.cucumber</groupId>
-        <artifactId>cucumber-junit</artifactId>
+        <artifactId>cucumber-junit-platform-engine</artifactId>
         <version>${cucumber.version}</version>
         <scope>test</scope>
       </dependency>
@@ -151,25 +220,14 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.junit.vintage</groupId>
-        <artifactId>junit-vintage-engine</artifactId>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testng</groupId>
-        <artifactId>testng</artifactId>
-        <version>${testng.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.awaitility</groupId>
-        <artifactId>awaitility</artifactId>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.liquibase</groupId>
         <artifactId>liquibase-core</artifactId>
         <version>${liquibase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>${kafka-clients.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.maven.plugins</groupId>
@@ -188,8 +246,13 @@
       </dependency>
       <dependency>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${surefire-plugin.version}</version>
+        <version>${failsafe-plugin.version}</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
@@ -210,6 +273,126 @@
         <groupId>io.jsonwebtoken</groupId>
         <artifactId>jjwt-jackson</artifactId>
         <version>${json-web-token.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ehcache</groupId>
+        <artifactId>ehcache</artifactId>
+        <version>${ehcache.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <version>${git-commit-id-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.webjars</groupId>
+        <artifactId>webjars-locator</artifactId>
+        <version>${webjars-locator.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.webjars.npm</groupId>
+        <artifactId>htmx.org</artifactId>
+        <version>${htmx-webjars.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.webjars.npm</groupId>
+        <artifactId>alpinejs</artifactId>
+        <version>${alpinejs-webjars.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>nz.net.ultraq.thymeleaf</groupId>
+        <artifactId>thymeleaf-layout-dialect</artifactId>
+        <version>${thymeleaf-layout-dialect.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>eu.michael-simons.neo4j</groupId>
+        <artifactId>neo4j-migrations</artifactId>
+        <version>${neo4j-migrations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.ascopes</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf-maven-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.salesforce.servicelibs</groupId>
+        <artifactId>proto-backwards-compatibility</artifactId>
+        <version>${proto-backwards-compatibility.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${maven-resources-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.cassandraunit</groupId>
+        <artifactId>cassandra-unit</artifactId>
+        <version>${cassandraunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.pulsar</groupId>
+        <artifactId>pulsar-client</artifactId>
+        <version>${pulsar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.approvaltests</groupId>
+        <artifactId>approvaltests</artifactId>
+        <version>${approvaltests.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>net.jqwik</groupId>
+        <artifactId>jqwik</artifactId>
+        <version>${jqwik.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jmolecules</groupId>
+        <artifactId>jmolecules-bom</artifactId>
+        <version>${jmolecules-bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.buschmais.jqassistant</groupId>
+        <artifactId>jqassistant-maven-plugin</artifactId>
+        <version>${jqassistant.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jqassistant.plugin</groupId>
+        <artifactId>jqassistant-context-mapper-plugin</artifactId>
+        <version>${jqassistant-context-mapper-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jqassistant.plugin</groupId>
+        <artifactId>jqassistant-jmolecules-plugin</artifactId>
+        <version>${jqassistant-jmolecules-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jqassistant.plugin</groupId>
+        <artifactId>jqassistant-spring-plugin</artifactId>
+        <version>${jqassistant-spring-plugin.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jqassistant.tooling.asciidoctorj</groupId>
+        <artifactId>jqassistant-asciidoctorj-extensions</artifactId>
+        <version>${jqassistant-asciidoctorj-extensions.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <version>${asciidoctor-maven-plugin.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

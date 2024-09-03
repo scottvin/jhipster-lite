@@ -1,0 +1,42 @@
+import globals from 'globals';
+import typescript from 'typescript-eslint';
+import eslint from '@eslint/js';
+import react from 'eslint-plugin-react/configs/recommended.js';
+
+export default typescript.config(
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    ignores: ['{{projectBuildDirectory}}/'],
+  },
+  eslint.configs.recommended,
+  {
+    files: ['src/main/webapp/**/*.{ts,tsx}', 'src/main/webapp/**/*.spec.ts'],
+    extends: [...typescript.configs.recommendedTypeChecked, react],
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+      parserOptions: {
+        project: ['./tsconfig.json'],
+      },
+    },
+    rules: {
+      'react/react-in-jsx-scope': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+    },
+  },
+);
